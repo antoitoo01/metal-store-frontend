@@ -1,12 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
 })
 export class LoginComponent {
@@ -28,7 +28,7 @@ export class LoginComponent {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err: HttpErrorResponse) => {
-        this.error.set(err.error?.message ?? 'Error al iniciar sesión');
+        this.error.set(err.error?.detail ?? err.error?.message ?? 'Error al iniciar sesión');
       },
     });
   }

@@ -4,6 +4,7 @@ import { MainLayoutComponent } from './layout/main-layout.component';
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login.component').then((c) => c.LoginComponent) },
+  { path: 'register', loadComponent: () => import('./features/auth/register.component').then((c) => c.RegisterComponent) },
   {
     path: '',
     component: MainLayoutComponent,
