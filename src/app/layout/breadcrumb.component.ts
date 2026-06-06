@@ -29,17 +29,16 @@ const BREADCRUMB_MAP: Record<string, string> = {
 
 @Component({
   selector: 'app-breadcrumb',
-  standalone: true,
   imports: [RouterLink],
   template: `
-    <nav class="flex items-center gap-1 text-sm text-gray-500">
-      <a routerLink="/dashboard" class="hover:text-gray-700">Inicio</a>
+    <nav class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+      <a routerLink="/dashboard" class="hover:text-gray-700 dark:hover:text-gray-200">Inicio</a>
       @for (crumb of breadcrumbs(); track crumb.url; let last = $last) {
         <span class="mx-1">/</span>
         @if (last) {
-          <span class="font-medium text-gray-900">{{ crumb.label }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{ crumb.label }}</span>
         } @else {
-          <a [routerLink]="crumb.url" class="hover:text-gray-700">{{ crumb.label }}</a>
+          <a [routerLink]="crumb.url" class="hover:text-gray-700 dark:hover:text-gray-200">{{ crumb.label }}</a>
         }
       }
     </nav>

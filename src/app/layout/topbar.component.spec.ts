@@ -28,13 +28,14 @@ describe('TopbarComponent', () => {
   });
 
   it('renders logout button', () => {
-    const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button');
-    expect(btn).toBeTruthy();
+    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
   });
 
   it('calls logout on AuthService when logout button clicked', () => {
-    const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button');
-    btn.click();
+    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button');
+    const logoutBtn = buttons[buttons.length - 1];
+    logoutBtn.click();
     expect(authMock.logout).toHaveBeenCalled();
   });
 

@@ -9,7 +9,7 @@ import { BreadcrumbComponent } from './breadcrumb.component';
   standalone: true,
   imports: [RouterOutlet, SidebarComponent, TopbarComponent, BreadcrumbComponent],
   template: `
-    <div class="flex h-screen overflow-hidden bg-gray-50">
+    <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <app-sidebar />
       <div class="flex flex-1 flex-col overflow-hidden">
         <app-topbar>

@@ -18,9 +18,14 @@ export interface Page<T> {
 }
 
 export interface ApiError {
+  type: string;
+  title: string;
   status: number;
-  error: string;
-  message: string;
+  detail: string;
+  instance: string;
+  code: string;
+  error?: string;
+  message?: string;
   path?: string;
   errors?: { field: string; message: string }[];
 }

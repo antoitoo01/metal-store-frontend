@@ -21,7 +21,6 @@ export function statusToBadgeVariant(status: string): BadgeVariant {
 
 @Component({
   selector: 'app-status-badge',
-  standalone: true,
   imports: [BadgeComponent],
   template: `
     <app-badge [variant]="statusToBadgeVariant(status())">
