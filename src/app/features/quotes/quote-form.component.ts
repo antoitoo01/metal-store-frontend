@@ -6,56 +6,37 @@ import { Router, RouterLink } from '@angular/router';
 import { QuoteService } from './quote.service';
 import { ClientService } from '../clients/client.service';
 import { QuoteResponse, ClientResponse, Page, CreateQuoteRequest } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
+import { BackLinkComponent } from '../../shared/components/back-link.component';
 
 @Component({
   selector: 'app-quote-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent],
   template: `
     <div class="p-6">
-      <a routerLink="/quotes" class="text-sm text-blue-600 hover:underline">← Volver a presupuestos</a>
+      <app-back-link path="/quotes" label="Volver a presupuestos" />
 
-      <h1 class="mt-2 text-2xl font-bold text-gray-900">Nuevo presupuesto</h1>
+      <h1 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">Nuevo presupuesto</h1>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Cliente</label>
-          <select formControlName="clientId" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-            <option value="">— Sin cliente —</option>
-            @for (c of clients.data()?.content ?? []; track c.id) {
-              <option [value]="c.id">{{ c.name }}</option>
-            }
-          </select>
-        </div>
+        <app-input formControlName="clientId" label="Cliente" variant="select">
+          <option value="">— Sin cliente —</option>
+          @for (c of clients.data()?.content ?? []; track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </app-input>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Nombre del cliente (libre)</label>
-          <input formControlName="customerName" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
+        <app-input formControlName="customerName" label="Nombre del cliente (libre)" />
+        <app-input formControlName="customerVat" label="CIF / NIF" />
+        <app-input formControlName="customerAddress" label="Dirección" />
+        <app-input formControlName="validUntil" label="Válido hasta" type="date" />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">CIF / NIF</label>
-          <input formControlName="customerVat" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
+        <app-input formControlName="notes" label="Notas" variant="textarea" />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Dirección</label>
-          <input formControlName="customerAddress" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Válido hasta</label>
-          <input type="date" formControlName="validUntil" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Notas</label>
-          <textarea formControlName="notes" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-        </div>
-
-        <button type="submit" [disabled]="saveMutation.isPending()"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+        <app-button type="submit" [disabled]="saveMutation.isPending()">
           {{ saveMutation.isPending() ? 'Creando…' : 'Crear presupuesto' }}
-        </button>
+        </app-button>
       </form>
     </div>
   `,

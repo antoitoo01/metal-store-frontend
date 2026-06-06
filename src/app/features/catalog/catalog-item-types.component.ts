@@ -4,44 +4,35 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from './catalog.service';
 import { TypeResponse, Page } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
+import { DataStateComponent } from '../../shared/components/data-state.component';
+import { TableComponent } from '../../shared/components/table.component';
 
 @Component({
   selector: 'app-catalog-item-types',
-  imports: [FormsModule],
+  imports: [FormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent],
   template: `
     <div>
       <div class="flex items-center gap-2">
-        <input [(ngModel)]="newName" placeholder="Nuevo tipo…"
-          class="block w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        <button (click)="createType()" [disabled]="!newName() || createMutation.isPending()"
-          class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+        <app-input [(ngModel)]="newName" placeholder="Nuevo tipo…" [ngModelOptions]="{standalone: true}" />
+        <app-button (clicked)="createType()" [disabled]="!newName() || createMutation.isPending()">
           {{ createMutation.isPending() ? '…' : 'Crear' }}
-        </button>
+        </app-button>
       </div>
 
-      @if (query.isPending()) {
-        <p class="mt-4 text-gray-500">Cargando…</p>
-      } @else {
-        <table class="mt-4 w-full text-left text-sm">
-          <thead>
-            <tr class="border-b text-gray-600">
-              <th class="py-2 pr-4 font-medium">Nombre</th>
-              <th class="py-2 pr-4 font-medium">Acciones</th>
+      <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
+        <app-table [columns]="['Nombre', 'Acciones']">
+          @for (t of query.data()?.content; track t.id) {
+            <tr>
+              <td class="text-gray-900 dark:text-white">{{ t.name }}</td>
+              <td>
+                <app-button variant="ghost" size="sm" (clicked)="deleteType(t.id)" [disabled]="deleteMutation.isPending()">Eliminar</app-button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            @for (t of query.data()?.content; track t.id) {
-              <tr class="border-b hover:bg-gray-50">
-                <td class="py-2 pr-4 text-gray-900">{{ t.name }}</td>
-                <td class="py-2">
-                  <button (click)="deleteType(t.id)" [disabled]="deleteMutation.isPending()"
-                    class="text-sm text-red-600 hover:text-red-800 disabled:opacity-50">Eliminar</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
+          }
+        </app-table>
+      </app-data-state>
     </div>
   `,
 })

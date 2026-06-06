@@ -3,57 +3,38 @@ import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { CatalogService } from './catalog.service';
 import { CatalogItem, Page } from '../../core/models/api.types';
+import { PaginationComponent } from '../../shared/components/pagination.component';
+import { DataStateComponent } from '../../shared/components/data-state.component';
+import { TableComponent } from '../../shared/components/table.component';
+import { SearchInputComponent } from '../../shared/components/search-input.component';
 
 @Component({
   selector: 'app-catalog-items',
-  imports: [],
+  imports: [PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent],
   template: `
     <div>
       <div class="flex items-center gap-4">
-        <input #searchInput (input)="search(searchInput.value)" placeholder="Buscar artículo…"
-          class="block w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+        <app-search-input placeholder="Buscar artículo…" (searchChange)="search($event)" />
       </div>
 
-      @if (query.isPending()) {
-        <p class="mt-4 text-gray-500">Cargando…</p>
-      } @else if (query.error()) {
-        <p class="mt-4 text-red-600">Error al cargar artículos</p>
-      } @else {
-        <table class="mt-4 w-full text-left text-sm">
-          <thead>
-            <tr class="border-b text-gray-600">
-              <th class="py-2 pr-4 font-medium">Designación</th>
-              <th class="py-2 pr-4 font-medium">SKU</th>
-              <th class="py-2 pr-4 font-medium">Tipo</th>
-              <th class="py-2 pr-4 font-medium">Material</th>
-              <th class="py-2 pr-4 font-medium">Peso (kg/m)</th>
-              <th class="py-2 pr-4 font-medium">Precio est. (€/kg)</th>
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar artículos' : undefined" [empty]="query.data()?.content?.length === 0">
+        <app-table [columns]="['Designación', 'SKU', 'Tipo', 'Material', 'Peso (kg/m)', 'Precio est. (€/kg)']">
+          @for (item of query.data()?.content; track item.id) {
+            <tr>
+          <td class="font-medium text-gray-900 dark:text-white">{{ item.designation }}</td>
+          <td class="text-gray-600 dark:text-gray-400">{{ item.sku ?? '—' }}</td>
+          <td class="text-gray-600 dark:text-gray-400">{{ item.itemType }}</td>
+          <td class="text-gray-600 dark:text-gray-400">{{ item.material ?? '—' }}</td>
+          <td class="text-gray-600 dark:text-gray-400">{{ item.weightKgM ?? '—' }}</td>
+          <td class="text-gray-600 dark:text-gray-400">{{ item.estimatedPriceKg }}</td>
             </tr>
-          </thead>
-          <tbody>
-            @for (item of query.data()?.content; track item.id) {
-              <tr class="border-b hover:bg-gray-50">
-                <td class="py-2 pr-4 font-medium text-gray-900">{{ item.designation }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ item.sku ?? '—' }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ item.itemType }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ item.material ?? '—' }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ item.weightKgM ?? '—' }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ item.estimatedPriceKg }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+          }
+        </app-table>
 
-        @if (query.data() && !query.data()!.empty) {
-          <div class="mt-4 flex items-center gap-2 text-sm">
-            <button (click)="goTo(query.data()!.number - 1)" [disabled]="query.data()!.first"
-              class="rounded px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30">Anterior</button>
-            <span class="text-gray-600">Página {{ (query.data()?.number ?? 0) + 1 }} de {{ query.data()?.totalPages ?? 0 }}</span>
-            <button (click)="goTo(query.data()!.number + 1)" [disabled]="query.data()!.last"
-              class="rounded px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30">Siguiente</button>
-          </div>
-        }
-      }
+        <div class="mt-4">
+          <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
+        </div>
+      </app-data-state>
     </div>
   `,
 })

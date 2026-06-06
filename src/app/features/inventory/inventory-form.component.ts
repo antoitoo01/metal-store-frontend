@@ -5,60 +5,41 @@ import { injectQuery, injectMutation } from '@tanstack/angular-query-experimenta
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryItemRequest, InventoryItemResponse } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
+import { BackLinkComponent } from '../../shared/components/back-link.component';
+import { CardComponent } from '../../shared/components/card.component';
 
 @Component({
   selector: 'app-inventory-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent, CardComponent],
   template: `
     <div class="p-6">
-      <a routerLink="/inventory" class="text-sm text-blue-600 hover:underline">← Volver a inventario</a>
+      <app-back-link path="/inventory" label="Volver a inventario" />
 
-      <h1 class="mt-2 text-2xl font-bold text-gray-900">{{ isEdit ? 'Editar' : 'Nuevo' }} registro de inventario</h1>
+      <h1 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ isEdit ? 'Editar' : 'Nuevo' }} registro de inventario</h1>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Cantidad *</label>
-          <input type="number" formControlName="quantity" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
+        <app-input formControlName="quantity" label="Cantidad *" type="number" />
+        <app-input formControlName="location" label="Ubicación" />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Ubicación</label>
-          <input formControlName="location" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
-
-        <fieldset class="rounded-lg border p-4">
-          <legend class="text-sm font-medium text-gray-700">Referencia (solo uno)</legend>
-          <div class="mt-2 space-y-2">
-            <div>
-              <label class="block text-sm text-gray-600">Profile ID</label>
-              <input formControlName="profileId" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label class="block text-sm text-gray-600">Item ID</label>
-              <input formControlName="itemId" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-            </div>
+        <app-card>
+          <div body class="space-y-2">
+            <legend class="text-sm font-medium text-gray-700 dark:text-gray-300">Referencia (solo uno)</legend>
+            <app-input formControlName="profileId" label="Profile ID" />
+            <app-input formControlName="itemId" label="Item ID" />
           </div>
-        </fieldset>
+        </app-card>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Coste (€)</label>
-          <input type="number" step="0.01" formControlName="costPriceEur" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
+        <app-input formControlName="costPriceEur" label="Coste (€)" type="number" />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Proveedor</label>
-          <input formControlName="supplier" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
+        <app-input formControlName="supplier" label="Proveedor" />
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Notas</label>
-          <textarea formControlName="notes" rows="3" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
-        </div>
+        <app-input formControlName="notes" label="Notas" variant="textarea" />
 
-        <button type="submit" [disabled]="form.invalid || saveMutation.isPending()"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+        <app-button type="submit" [disabled]="form.invalid || saveMutation.isPending()">
           {{ saveMutation.isPending() ? 'Guardando…' : 'Guardar' }}
-        </button>
+        </app-button>
       </form>
     </div>
   `,

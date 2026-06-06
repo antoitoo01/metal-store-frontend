@@ -1,20 +1,19 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent],
   templateUrl: './login.html',
 })
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-
-  readonly error = signal('');
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -24,12 +23,8 @@ export class LoginComponent {
   login(): void {
     if (this.form.invalid) return;
 
-    this.error.set('');
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: (err: HttpErrorResponse) => {
-        this.error.set(err.error?.detail ?? err.error?.message ?? 'Error al iniciar sesión');
-      },
     });
   }
 }

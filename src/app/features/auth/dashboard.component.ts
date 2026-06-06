@@ -6,17 +6,17 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <div class="p-8">
-      <h1 class="text-2xl font-bold text-gray-900">Panel principal</h1>
-      <p class="mt-2 text-gray-600">Bienvenido a Metal Store</p>
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Panel principal</h1>
+  <p class="mt-2 text-gray-600 dark:text-gray-400">Bienvenido a Metal Store</p>
 
-      <nav class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        @for (link of links; track link.label) {
-          <a [routerLink]="link.path" class="rounded-xl border p-5 shadow-sm hover:shadow-md">
-            <h2 class="font-semibold text-gray-900">{{ link.label }}</h2>
-            <p class="mt-1 text-sm text-gray-500">{{ link.description }}</p>
-          </a>
-        }
-      </nav>
+  <nav class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    @for (link of links; track link.label) {
+      <a [routerLink]="link.path" class="rounded-xl border p-5 shadow-sm hover:shadow-md dark:border-gray-700">
+        <h2 class="font-semibold text-gray-900 dark:text-white">{{ link.label }}</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ link.description }}</p>
+      </a>
+    }
+  </nav>
     </div>
   `,
 })

@@ -5,10 +5,13 @@ import { injectQuery, injectMutation } from '@tanstack/angular-query-experimenta
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ClientService } from './client.service';
 import { CreateClientRequest, ClientResponse } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
+import { BackLinkComponent } from '../../shared/components/back-link.component';
 
 @Component({
   selector: 'app-client-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent],
   templateUrl: './client-form.html',
 })
 export class ClientFormComponent {

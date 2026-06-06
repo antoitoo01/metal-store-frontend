@@ -1,74 +1,45 @@
 <div class="p-6">
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-900">Clientes</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Clientes</h1>
     <a routerLink="/clients/new" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
       Nuevo cliente
     </a>
   </div>
 
-  <input
-    type="text"
-    placeholder="Buscar por nombre…"
-    (input)="search($any($event.target).value)"
-    class="mt-4 block w-full max-w-sm rounded-lg border border-gray-300 px-3 py-2 text-sm"
-  />
+  <div class="mt-4">
+    <app-search-input placeholder="Buscar por nombre…" (searchChange)="search($event)" />
+  </div>
 
-  @if (query.isLoading()) {
-    <p class="mt-6 text-gray-500">Cargando…</p>
-  } @else if (query.error()) {
-    <p class="mt-6 text-red-600">Error al cargar clientes</p>
-  } @else if (query.data()?.content?.length === 0) {
-    <p class="mt-6 text-gray-500">No hay clientes todavía.</p>
-  } @else {
-    <div class="mt-4 overflow-hidden rounded-xl border shadow-sm">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-50 text-gray-600">
-          <tr>
-            <th class="px-4 py-3 font-medium">Nombre</th>
-            <th class="px-4 py-3 font-medium">Email</th>
-            <th class="px-4 py-3 font-medium">CIF/NIF</th>
-            <th class="px-4 py-3 font-medium">Estado</th>
-            <th class="px-4 py-3 font-medium"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y">
-          @for (client of query.data()?.content; track client.id) {
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-3 font-medium text-gray-900">
-                <a [routerLink]="['/clients', client.id]" class="hover:text-blue-600">{{ client.name }}</a>
-              </td>
-              <td class="px-4 py-3 text-gray-600">{{ client.email ?? '—' }}</td>
-              <td class="px-4 py-3 text-gray-600">{{ client.vatNumber ?? '—' }}</td>
-              <td class="px-4 py-3">
-                <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-                  [class.bg-green-100]="client.status === 'ACTIVE'"
-                  [class.text-green-700]="client.status === 'ACTIVE'"
-                  [class.bg-gray-100]="client.status === 'INACTIVE'"
-                  [class.text-gray-600]="client.status === 'INACTIVE'">
-                  {{ client.status === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-right">
-                @if (client.status === 'ACTIVE') {
-                  <button (click)="deactivateMutation.mutate(client.id)" class="text-xs text-gray-500 hover:text-red-600">Desactivar</button>
-                } @else {
-                  <button (click)="activateMutation.mutate(client.id)" class="text-xs text-gray-500 hover:text-green-600">Activar</button>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <app-data-state
+    [loading]="query.isLoading()"
+    [error]="query.isError() ? 'Error al cargar clientes' : undefined"
+    [empty]="(query.data()?.content?.length ?? 0) === 0"
+    emptyMessage="No hay clientes todavía."
+  >
+    <app-table [columns]="['Nombre', 'Email', 'CIF/NIF', 'Estado', '']">
+      @for (client of query.data()?.content; track client.id) {
+        <tr>
+          <td class="font-medium text-gray-900 dark:text-white">
+            <a [routerLink]="['/clients', client.id]" class="hover:text-blue-600 dark:hover:text-blue-400">{{ client.name }}</a>
+          </td>
+          <td class="text-gray-600 dark:text-gray-400">{{ client.email ?? '—' }}</td>
+          <td class="text-gray-600 dark:text-gray-400">{{ client.vatNumber ?? '—' }}</td>
+          <td>
+            <app-status-badge [status]="client.status" [label]="client.status === 'ACTIVE' ? 'Activo' : 'Inactivo'" />
+          </td>
+          <td class="text-right">
+            @if (client.status === 'ACTIVE') {
+              <app-button variant="ghost" size="sm" (clicked)="deactivateMutation.mutate(client.id)">Desactivar</app-button>
+            } @else {
+              <app-button variant="ghost" size="sm" (clicked)="activateMutation.mutate(client.id)">Activar</app-button>
+            }
+          </td>
+        </tr>
+      }
+    </app-table>
+
+    <div class="mt-4">
+      <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
     </div>
-
-    @if (query.data() && query.data()!.totalPages > 1) {
-      <div class="mt-4 flex items-center gap-2 text-sm">
-        <button (click)="goTo(0)" [disabled]="query.data()?.first" class="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-30">«</button>
-        <button (click)="goTo(page() - 1)" [disabled]="query.data()?.first" class="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-30">‹</button>
-        <span class="text-gray-600">Página {{ page() + 1 }} de {{ query.data()?.totalPages }}</span>
-        <button (click)="goTo(page() + 1)" [disabled]="query.data()?.last" class="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-30">›</button>
-        <button (click)="goTo(query.data()!.totalPages - 1)" [disabled]="query.data()?.last" class="rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-30">»</button>
-      </div>
-    }
-  }
+  </app-data-state>
 </div>

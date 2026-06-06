@@ -4,10 +4,16 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { RouterLink } from '@angular/router';
 import { ClientService } from './client.service';
 import { ClientResponse, Page } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { PaginationComponent } from '../../shared/components/pagination.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
+import { DataStateComponent } from '../../shared/components/data-state.component';
+import { TableComponent } from '../../shared/components/table.component';
+import { SearchInputComponent } from '../../shared/components/search-input.component';
 
 @Component({
   selector: 'app-client-list',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonComponent, PaginationComponent, StatusBadgeComponent, DataStateComponent, TableComponent, SearchInputComponent],
   templateUrl: './client-list.html',
 })
 export class ClientListComponent {

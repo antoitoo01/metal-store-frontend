@@ -2,42 +2,31 @@ import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { CatalogService } from './catalog.service';
+import { DataStateComponent } from '../../shared/components/data-state.component';
+import { TableComponent } from '../../shared/components/table.component';
 
 @Component({
   selector: 'app-catalog-families',
+  imports: [DataStateComponent, TableComponent],
   template: `
     <div>
-      <select (change)="standard.set($any($event.target).value)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+      <select (change)="standard.set($any($event.target).value)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white">
         <option value="">EUR</option>
         <option value="AISC">AISC</option>
       </select>
 
-      @if (query.isPending()) {
-        <p class="mt-4 text-gray-500">Cargando…</p>
-      } @else if (query.error()) {
-        <p class="mt-4 text-red-600">Error al cargar familias</p>
-      } @else {
-        <table class="mt-4 w-full text-left text-sm">
-          <thead>
-            <tr class="border-b text-gray-600">
-              <th class="py-2 pr-4 font-medium">Código</th>
-              <th class="py-2 pr-4 font-medium">Nombre</th>
-              <th class="py-2 pr-4 font-medium">Norma</th>
-              <th class="py-2 pr-4 font-medium">Tipo</th>
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar familias' : undefined" [empty]="query.data()?.length === 0">
+        <app-table [columns]="['Código', 'Nombre', 'Norma', 'Tipo']">
+          @for (f of query.data(); track f.id) {
+            <tr>
+              <td class="font-semibold text-gray-900 dark:text-white">{{ f.code }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ f.name }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ f.standard }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ f.shapeType }}</td>
             </tr>
-          </thead>
-          <tbody>
-            @for (f of query.data(); track f.id) {
-              <tr class="border-b hover:bg-gray-50">
-                <td class="py-2 pr-4 font-semibold text-gray-900">{{ f.code }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ f.name }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ f.standard }}</td>
-                <td class="py-2 pr-4 text-gray-600">{{ f.shapeType }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
+          }
+        </app-table>
+      </app-data-state>
     </div>
   `,
 })

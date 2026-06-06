@@ -5,129 +5,99 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { QuoteService } from './quote.service';
 import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
+import { BackLinkComponent } from '../../shared/components/back-link.component';
+import { DataStateComponent } from '../../shared/components/data-state.component';
+import { TableComponent } from '../../shared/components/table.component';
+import { CardComponent } from '../../shared/components/card.component';
 
 @Component({
   selector: 'app-quote-detail',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
   template: `
     <div class="p-6">
-      <a routerLink="/quotes" class="text-sm text-blue-600 hover:underline">← Volver a presupuestos</a>
+      <app-back-link path="/quotes" label="Volver a presupuestos" />
 
-      @if (quoteQuery.isPending()) {
-        <p class="mt-4 text-gray-500">Cargando…</p>
-      } @else if (quoteQuery.error()) {
-        <p class="mt-4 text-red-600">Error al cargar presupuesto</p>
-      } @else {
+      <app-data-state [loading]="quoteQuery.isPending()" [error]="quoteQuery.isError() ? 'Error al cargar presupuesto' : undefined" [empty]="false">
         @let q = quoteQuery.data()!;
 
         <div class="mt-4 flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">{{ q.quoteNumber }}</h1>
-            <p class="mt-1 text-sm text-gray-500">{{ q.customerName ?? 'Sin cliente' }}</p>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ q.quoteNumber }}</h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ q.customerName ?? 'Sin cliente' }}</p>
           </div>
-          <span class="inline-block rounded-full px-3 py-1 text-xs font-semibold"
-            [class]="statusClass(q.status)">{{ q.status }}</span>
+          <app-status-badge [status]="q.status" />
         </div>
 
         @if (q.status === 'DRAFT' || q.status === 'ISSUED') {
           <div class="mt-4 flex gap-2">
             @if (q.status === 'DRAFT') {
-              <button (click)="transition('issue')" [disabled]="statusMutation.isPending()"
-                class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">Emitir</button>
-              <button (click)="transition('cancel')" [disabled]="statusMutation.isPending()"
-                class="rounded-lg bg-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-300 disabled:opacity-50">Cancelar</button>
+              <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
+              <app-button variant="secondary" size="sm" (clicked)="transition('cancel')" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
             @if (q.status === 'ISSUED') {
-              <button (click)="transition('accept')" [disabled]="statusMutation.isPending()"
-                class="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">Aceptar</button>
-              <button (click)="transition('reject')" [disabled]="statusMutation.isPending()"
-                class="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">Rechazar</button>
-              <button (click)="transition('cancel')" [disabled]="statusMutation.isPending()"
-                class="rounded-lg bg-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-300 disabled:opacity-50">Cancelar</button>
+              <app-button variant="primary" size="sm" (clicked)="transition('accept')" [disabled]="statusMutation.isPending()">Aceptar</app-button>
+              <app-button variant="danger" size="sm" (clicked)="transition('reject')" [disabled]="statusMutation.isPending()">Rechazar</app-button>
+              <app-button variant="secondary" size="sm" (clicked)="transition('cancel')" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
           </div>
         }
 
         <div class="mt-6 grid grid-cols-3 gap-4 text-sm">
-          <div><span class="font-medium text-gray-700">Fecha:</span> {{ q.issueDate }}</div>
-          <div><span class="font-medium text-gray-700">Válido hasta:</span> {{ q.validUntil ?? '—' }}</div>
-          <div><span class="font-medium text-gray-700">CIF/NIF:</span> {{ q.customerVat ?? '—' }}</div>
-          <div class="col-span-3"><span class="font-medium text-gray-700">Dirección:</span> {{ q.customerAddress ?? '—' }}</div>
-          <div><span class="font-medium text-gray-700">Subtotal:</span> {{ q.subtotal.toFixed(2) }} €</div>
-          <div><span class="font-medium text-gray-700">IVA:</span> {{ q.vatTotal.toFixed(2) }} €</div>
-          <div><span class="font-medium text-gray-700">Total:</span> <strong>{{ q.total.toFixed(2) }} €</strong></div>
+          <div><span class="font-medium text-gray-700 dark:text-gray-300">Fecha:</span> {{ q.issueDate }}</div>
+          <div><span class="font-medium text-gray-700 dark:text-gray-300">Válido hasta:</span> {{ q.validUntil ?? '—' }}</div>
+          <div><span class="font-medium text-gray-700 dark:text-gray-300">CIF/NIF:</span> {{ q.customerVat ?? '—' }}</div>
+          <div class="col-span-3"><span class="font-medium text-gray-700 dark:text-gray-300">Dirección:</span> {{ q.customerAddress ?? '—' }}</div>
+          <div><span class="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span> {{ q.subtotal.toFixed(2) }} €</div>
+          <div><span class="font-medium text-gray-700 dark:text-gray-300">IVA:</span> {{ q.vatTotal.toFixed(2) }} €</div>
+          <div><span class="font-medium text-gray-700 dark:text-gray-300">Total:</span> <strong>{{ q.total.toFixed(2) }} €</strong></div>
           @if (q.notes) {
-            <div class="col-span-3"><span class="font-medium text-gray-700">Notas:</span> {{ q.notes }}</div>
+            <div class="col-span-3"><span class="font-medium text-gray-700 dark:text-gray-300">Notas:</span> {{ q.notes }}</div>
           }
         </div>
 
-        <h2 class="mt-8 text-lg font-semibold text-gray-900">Líneas</h2>
+        <h2 class="mt-8 text-lg font-semibold text-gray-900 dark:text-white">Líneas</h2>
 
-        @if (linesQuery.isPending()) {
-          <p class="mt-2 text-sm text-gray-500">Cargando líneas…</p>
-        } @else {
-          <table class="mt-2 w-full text-left text-sm">
-            <thead>
-              <tr class="border-b text-gray-600">
-                <th class="py-2 pr-4 font-medium">#</th>
-                <th class="py-2 pr-4 font-medium">Descripción</th>
-                <th class="py-2 pr-4 font-medium">Cantidad</th>
-                <th class="py-2 pr-4 font-medium">Precio ud.</th>
-                <th class="py-2 pr-4 font-medium">IVA</th>
-                <th class="py-2 pr-4 font-medium">Total</th>
-                <th class="py-2 pr-4 font-medium"></th>
+        <app-data-state [loading]="linesQuery.isPending()" [empty]="false">
+          <app-table [columns]="['#', 'Descripción', 'Cantidad', 'Precio ud.', 'IVA', 'Total', '']">
+            @for (line of linesQuery.data(); track line.id) {
+              <tr>
+                <td class="text-gray-600 dark:text-gray-400">{{ line.lineNumber }}</td>
+                <td class="text-gray-900 dark:text-white">{{ line.description }}</td>
+                <td class="text-gray-600 dark:text-gray-400">{{ line.quantity }}</td>
+                <td class="text-gray-600 dark:text-gray-400">{{ line.unitPrice.toFixed(2) }} €</td>
+                <td class="text-gray-600 dark:text-gray-400">{{ line.vatRate }}%</td>
+                <td class="font-medium text-gray-900 dark:text-white">{{ line.totalPrice.toFixed(2) }} €</td>
+                <td>
+                  <app-button variant="ghost" size="sm" (clicked)="removeLine(line.id)" [disabled]="deleteLineMutation.isPending()">Eliminar</app-button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @for (line of linesQuery.data(); track line.id) {
-                <tr class="border-b hover:bg-gray-50">
-                  <td class="py-2 pr-4 text-gray-600">{{ line.lineNumber }}</td>
-                  <td class="py-2 pr-4 text-gray-900">{{ line.description }}</td>
-                  <td class="py-2 pr-4 text-gray-600">{{ line.quantity }}</td>
-                  <td class="py-2 pr-4 text-gray-600">{{ line.unitPrice.toFixed(2) }} €</td>
-                  <td class="py-2 pr-4 text-gray-600">{{ line.vatRate }}%</td>
-                  <td class="py-2 pr-4 font-medium text-gray-900">{{ line.totalPrice.toFixed(2) }} €</td>
-                  <td class="py-2">
-                    <button (click)="removeLine(line.id)" [disabled]="deleteLineMutation.isPending()"
-                      class="text-sm text-red-600 hover:text-red-800 disabled:opacity-50">Eliminar</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+            }
+          </app-table>
 
           @if (q.status === 'DRAFT') {
-            <div class="mt-6 max-w-lg space-y-3 rounded-lg border p-4">
-              <h3 class="text-sm font-semibold text-gray-700">Añadir línea</h3>
+            <app-card>
+              <div body class="space-y-3">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Añadir línea</h3>
 
-              <div>
-                <label class="block text-sm text-gray-600">Descripción *</label>
-                <input [(ngModel)]="newLine.description" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+                <app-input [(ngModel)]="newLine.description" label="Descripción *" [ngModelOptions]="{standalone: true}" />
+
+                <div class="grid grid-cols-3 gap-3">
+                  <app-input type="number" [(ngModel)]="newLine.quantity" label="Cantidad *" [ngModelOptions]="{standalone: true}" />
+                  <app-input type="number" [(ngModel)]="newLine.unitPrice" label="Precio ud. *" step="0.01" [ngModelOptions]="{standalone: true}" />
+                  <app-input type="number" [(ngModel)]="newLine.vatRate" label="IVA %" step="0.01" [ngModelOptions]="{standalone: true}" />
+                </div>
+
+                <app-button (clicked)="addLine()" [disabled]="!newLine.description || !newLine.quantity || !newLine.unitPrice || addLineMutation.isPending()">
+                  {{ addLineMutation.isPending() ? 'Añadiendo…' : 'Añadir línea' }}
+                </app-button>
               </div>
-
-              <div class="grid grid-cols-3 gap-3">
-                <div>
-                  <label class="block text-sm text-gray-600">Cantidad *</label>
-                  <input type="number" [(ngModel)]="newLine.quantity" min="1" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label class="block text-sm text-gray-600">Precio ud. *</label>
-                  <input type="number" step="0.01" [(ngModel)]="newLine.unitPrice" min="0" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                </div>
-                <div>
-                  <label class="block text-sm text-gray-600">IVA %</label>
-                  <input type="number" step="0.01" [(ngModel)]="newLine.vatRate" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-                </div>
-              </div>
-
-              <button (click)="addLine()" [disabled]="!newLine.description || !newLine.quantity || !newLine.unitPrice || addLineMutation.isPending()"
-                class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-                {{ addLineMutation.isPending() ? 'Añadiendo…' : 'Añadir línea' }}
-              </button>
-            </div>
+            </app-card>
           }
-        }
-      }
+        </app-data-state>
+      </app-data-state>
     </div>
   `,
 })
@@ -194,16 +164,5 @@ export class QuoteDetailComponent {
 
   removeLine(lineId: string) {
     this.deleteLineMutation.mutate(lineId);
-  }
-
-  statusClass(status: string): string {
-    const map: Record<string, string> = {
-      DRAFT: 'bg-gray-100 text-gray-700',
-      ISSUED: 'bg-blue-100 text-blue-700',
-      ACCEPTED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700',
-      CANCELLED: 'bg-yellow-100 text-yellow-700',
-    };
-    return map[status] ?? 'bg-gray-100 text-gray-700';
   }
 }

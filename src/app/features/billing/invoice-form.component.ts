@@ -5,29 +5,25 @@ import { injectMutation } from '@tanstack/angular-query-experimental';
 import { Router, RouterLink } from '@angular/router';
 import { BillingService } from './billing.service';
 import { InvoiceResponse } from '../../core/models/api.types';
+import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input.component';
+import { BackLinkComponent } from '../../shared/components/back-link.component';
 
 @Component({
   selector: 'app-invoice-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent],
   template: `
     <div>
-      <a routerLink="/billing/invoices" class="text-sm text-blue-600 hover:underline">← Volver a facturas</a>
+      <app-back-link path="/billing/invoices" label="Volver a facturas" />
 
-      <h2 class="mt-2 text-lg font-semibold text-gray-900">Nueva factura</h2>
+      <h2 class="mt-2 text-lg font-semibold text-gray-900 dark:text-white">Nueva factura</h2>
 
       <form [formGroup]="form" (ngSubmit)="save()" class="mt-4 max-w-lg space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Cliente</label>
-          <input formControlName="customerName" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">CIF / NIF</label>
-          <input formControlName="customerVat" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-        </div>
-        <button type="submit" [disabled]="saveMutation.isPending()"
-          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+        <app-input formControlName="customerName" label="Cliente" />
+        <app-input formControlName="customerVat" label="CIF / NIF" />
+        <app-button type="submit" [disabled]="saveMutation.isPending()">
           {{ saveMutation.isPending() ? 'Creando…' : 'Crear factura' }}
-        </button>
+        </app-button>
       </form>
     </div>
   `,
