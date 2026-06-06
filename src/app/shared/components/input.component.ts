@@ -4,8 +4,9 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 @Component({
   selector: 'app-input',
   standalone: true,
+  host: { style: 'display: block;' },
   template: `
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-1.5">
       @if (label()) {
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ label() }}</label>
       }
@@ -43,7 +44,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
         }
       }
       @if (error()) {
-        <p data-testid="input-error" class="text-sm text-red-600">{{ error() }}</p>
+        <p data-testid="input-error" class="mt-1 text-sm text-red-600">{{ error() }}</p>
       }
     </div>
   `,
@@ -89,7 +90,7 @@ export class InputComponent implements ControlValueAccessor {
   }
 
   protected inputClasses(): string {
-    const base = 'block w-full rounded-lg border px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500';
+    const base = 'block w-full rounded-lg border px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500';
     const border = this.error() ? 'border-red-300 focus:border-red-500 dark:border-red-500' : 'border-gray-300 focus:border-primary-500 dark:border-gray-600';
     const disabled = this.isDisabled() ? 'cursor-not-allowed opacity-50' : '';
     return `${base} ${border} ${disabled}`;

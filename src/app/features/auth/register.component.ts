@@ -10,11 +10,11 @@ import { ButtonComponent } from '../../shared/components/button.component';
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, InputComponent, ButtonComponent],
   template: `
-    <div class="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
-      <form [formGroup]="form" (ngSubmit)="register()" class="w-full max-w-sm space-y-5 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
-        <div class="text-center">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Creá tu cuenta</p>
+    <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
+      <form [formGroup]="form" (ngSubmit)="register()" class="w-full max-w-sm space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
+        <div class="space-y-1">
+          <h1 class="text-center text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
+          <p class="text-center text-sm text-gray-500 dark:text-gray-400">Crea tu cuenta</p>
         </div>
 
         @if (error()) {
@@ -35,13 +35,13 @@ import { ButtonComponent } from '../../shared/components/button.component';
 
         <app-input formControlName="tenantName" label="Nombre de la empresa" placeholder="ej: Aceros del Sur" />
 
-        <app-button type="submit" variant="primary" size="lg" class="w-full" [disabled]="form.invalid">
+        <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid">
           Registrarse
         </app-button>
 
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-          ¿Ya tenés cuenta?
-          <a routerLink="/login" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Iniciá sesión</a>
+          ¿Ya tienes cuenta?
+          <a routerLink="/login" class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">Inicia sesión</a>
         </p>
       </form>
     </div>

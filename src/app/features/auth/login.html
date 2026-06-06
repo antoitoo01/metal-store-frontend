@@ -1,8 +1,8 @@
-<div class="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
-  <form [formGroup]="form" (ngSubmit)="login()" class="w-full max-w-sm space-y-5 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
-    <div class="text-center">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Inicia sesión para continuar</p>
+<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
+  <form [formGroup]="form" (ngSubmit)="login()" class="w-full max-w-sm gap-y-7 space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
+    <div class="space-y-1">
+      <h1 class="text-center text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400">Inicia sesión para continuar</p>
     </div>
 
     <app-input
@@ -21,7 +21,7 @@
       [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 8 caracteres' : ''"
     />
 
-    <app-button type="submit" [disabled]="form.invalid" variant="primary" size="lg" class="w-full">
+    <app-button type="submit" [disabled]="form.invalid" variant="primary" size="lg" [block]="true">
       Ingresar
     </app-button>
 

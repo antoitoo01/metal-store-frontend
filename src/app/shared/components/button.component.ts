@@ -5,6 +5,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 
 @Component({
   selector: 'app-button',
+  host: { style: 'display: block;' },
   template: `
     <button
       [type]="type()"
@@ -20,6 +21,7 @@ export class ButtonComponent {
   readonly size = input<ButtonSize>('md');
   readonly disabled = input(false);
   readonly type = input('button');
+  readonly block = input(false);
   readonly clicked = output<MouseEvent>();
 
   protected classes(): string {
@@ -36,7 +38,8 @@ export class ButtonComponent {
       md: 'px-4 py-2 text-sm',
       lg: 'px-6 py-3 text-base',
     };
-    return `${base} ${variants[this.variant()]} ${sizes[this.size()]}`;
+    const width = this.block() ? 'flex w-full' : 'inline-flex';
+    return `${base} ${variants[this.variant()]} ${sizes[this.size()]} ${width}`;
   }
 
   protected onClick(event: MouseEvent): void {
