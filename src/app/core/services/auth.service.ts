@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { firstValueFrom, Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/api.types';
+import { SKIP_TOAST } from '../interceptors/error.interceptor';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -21,7 +22,11 @@ export class AuthService {
   /** Llamar en APP_INITIALIZER: chequea si hay cookie de sesión vía /me */
   async initialize(): Promise<void> {
     try {
-      const user = await firstValueFrom(this.http.get<UserResponse>(`${this.apiUrl}/me`));
+      const user = await firstValueFrom(
+        this.http.get<UserResponse>(`${this.apiUrl}/me`, {
+          context: new HttpContext().set(SKIP_TOAST, true),
+        }),
+      );
       this.user.set(user);
       this.isAuthenticated.set(true);
       this.#tenantId = user.tenantId;
