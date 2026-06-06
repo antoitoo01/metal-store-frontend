@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { QuoteService } from './quote.service';
 import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest } from '../../core/models/api.types';
@@ -15,7 +15,7 @@ import { CardComponent } from '../../shared/components/card.component';
 
 @Component({
   selector: 'app-quote-detail',
-  imports: [RouterLink, FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
+  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/quotes" label="Volver a presupuestos" />

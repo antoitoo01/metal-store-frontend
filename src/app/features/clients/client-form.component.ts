@@ -2,7 +2,7 @@ import { Component, inject, effect } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectQuery, injectMutation } from '@tanstack/angular-query-experimental';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ClientService } from './client.service';
 import { CreateClientRequest, ClientResponse } from '../../core/models/api.types';
 import { ButtonComponent } from '../../shared/components/button.component';
@@ -11,7 +11,7 @@ import { BackLinkComponent } from '../../shared/components/back-link.component';
 
 @Component({
   selector: 'app-client-form',
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent],
+  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, BackLinkComponent],
   templateUrl: './client-form.html',
 })
 export class ClientFormComponent {

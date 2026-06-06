@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BillingService } from './billing.service';
 import { InvoiceResponse, InvoiceLineResponse, CreateInvoiceLineRequest } from '../../core/models/api.types';
@@ -15,7 +15,7 @@ import { CardComponent } from '../../shared/components/card.component';
 
 @Component({
   selector: 'app-invoice-detail',
-  imports: [RouterLink, FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
+  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
   template: `
     <div>
       <app-back-link path="/billing/invoices" label="Volver a facturas" />

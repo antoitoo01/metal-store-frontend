@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { injectQuery, injectMutation } from '@tanstack/angular-query-experimental';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { QuoteService } from './quote.service';
 import { ClientService } from '../clients/client.service';
 import { QuoteResponse, ClientResponse, Page, CreateQuoteRequest } from '../../core/models/api.types';
@@ -12,7 +12,7 @@ import { BackLinkComponent } from '../../shared/components/back-link.component';
 
 @Component({
   selector: 'app-quote-form',
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent],
+  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, BackLinkComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/quotes" label="Volver a presupuestos" />

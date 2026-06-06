@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { injectMutation } from '@tanstack/angular-query-experimental';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { BillingService } from './billing.service';
 import { InvoiceResponse } from '../../core/models/api.types';
 import { ButtonComponent } from '../../shared/components/button.component';
@@ -11,7 +11,7 @@ import { BackLinkComponent } from '../../shared/components/back-link.component';
 
 @Component({
   selector: 'app-invoice-form',
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent],
+  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, BackLinkComponent],
   template: `
     <div>
       <app-back-link path="/billing/invoices" label="Volver a facturas" />

@@ -2,7 +2,7 @@ import { Component, inject, effect } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectQuery, injectMutation } from '@tanstack/angular-query-experimental';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryItemRequest, InventoryItemResponse } from '../../core/models/api.types';
 import { ButtonComponent } from '../../shared/components/button.component';
@@ -12,7 +12,7 @@ import { CardComponent } from '../../shared/components/card.component';
 
 @Component({
   selector: 'app-inventory-form',
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, InputComponent, BackLinkComponent, CardComponent],
+  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, BackLinkComponent, CardComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/inventory" label="Volver a inventario" />
