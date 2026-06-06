@@ -10,8 +10,8 @@ import { ButtonComponent } from '../../shared/components/button.component';
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, InputComponent, ButtonComponent],
   template: `
-    <div class="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <form [formGroup]="form" (ngSubmit)="register()" class="w-full max-w-sm space-y-5 rounded-xl bg-white p-8 shadow-lg dark:bg-slate-900">
+    <div class="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <form [formGroup]="form" (ngSubmit)="register()" class="w-full max-w-sm space-y-5 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
         <div class="text-center">
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Creá tu cuenta</p>
