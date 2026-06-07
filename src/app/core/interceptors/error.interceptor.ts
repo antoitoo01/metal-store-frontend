@@ -7,6 +7,7 @@ import { extractErrorMessage } from '../services/error-messages';
 import { catchError, throwError } from 'rxjs';
 
 export const SKIP_TOAST = new HttpContextToken<boolean>(() => false);
+export const SKIP_AUTH_REDIRECT = new HttpContextToken<boolean>(() => false);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -17,7 +18,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err) => {
       if (err.status === 401) {
         auth.clearAuth();
-        router.navigate(['/login']);
+        if (!req.context.get(SKIP_AUTH_REDIRECT)) {
+          router.navigate(['/login']);
+        }
       }
 
       if (!req.context.get(SKIP_TOAST)) {

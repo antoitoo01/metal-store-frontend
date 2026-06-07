@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { firstValueFrom, Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, RegisterRequest, UserResponse } from '../models/api.types';
-import { SKIP_TOAST } from '../interceptors/error.interceptor';
+import { SKIP_TOAST, SKIP_AUTH_REDIRECT } from '../interceptors/error.interceptor';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -24,7 +24,7 @@ export class AuthService {
     try {
       const user = await firstValueFrom(
         this.http.get<UserResponse>(`${this.apiUrl}/me`, {
-          context: new HttpContext().set(SKIP_TOAST, true),
+          context: new HttpContext().set(SKIP_TOAST, true).set(SKIP_AUTH_REDIRECT, true),
         }),
       );
       this.user.set(user);
