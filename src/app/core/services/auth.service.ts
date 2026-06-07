@@ -62,6 +62,14 @@ export class AuthService {
   #handleAuthResponse(res: LoginResponse): void {
     this.#tenantId = res.tenantId;
     this.isAuthenticated.set(true);
+    this.user.set({
+      id: res.tenantId,
+      username: res.username ?? res.email.split('@')[0],
+      email: res.email,
+      role: res.role,
+      tenantId: res.tenantId,
+      tenantName: res.tenantName,
+    });
   }
 
   #clearAuth(): void {

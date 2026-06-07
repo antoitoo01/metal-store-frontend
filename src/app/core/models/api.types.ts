@@ -48,6 +48,7 @@ export interface LoginResponse {
   refreshToken?: string;
   expiresIn: number;
   email: string;
+  username?: string;
   role: UserRole;
   tenantId: string;
   tenantName: string;

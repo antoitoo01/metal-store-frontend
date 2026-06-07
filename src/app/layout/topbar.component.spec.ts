@@ -22,9 +22,9 @@ describe('TopbarComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders user email', () => {
+  it('renders username', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).toContain('test@mail.com');
+    expect(el.textContent).toContain('test');
   });
 
   it('renders logout button', () => {

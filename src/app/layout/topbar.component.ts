@@ -23,7 +23,7 @@ import { ThemeService } from '../core/services/theme.service';
           }
         </button>
         <span class="text-sm text-gray-600 dark:text-gray-400">
-          {{ authService.user()?.email ?? 'Invitado' }}
+          {{ authService.user()?.username ?? 'Invitado' }}
         </span>
         <button
           (click)="logout()"
