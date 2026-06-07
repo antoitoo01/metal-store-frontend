@@ -21,6 +21,16 @@
       [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 8 caracteres' : ''"
     />
 
+    <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+      <input
+        type="checkbox"
+        [checked]="rememberMe()"
+        (change)="rememberMe.set($any($event.target).checked)"
+        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-blue-400"
+      />
+      Mantener sesión iniciada
+    </label>
+
     <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid || loading()" [loading]="loading()">
       Ingresar
     </app-button>
