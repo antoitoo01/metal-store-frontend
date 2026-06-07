@@ -9,10 +9,17 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
   template: `
     <button
       [type]="type()"
-      [disabled]="disabled()"
+      [disabled]="disabled() || loading()"
       (click)="onClick($event)"
       [class]="classes()">
-      <ng-content />
+      @if (loading()) {
+        <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      } @else {
+        <ng-content />
+      }
     </button>
   `,
 })
@@ -20,6 +27,7 @@ export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');
   readonly size = input<ButtonSize>('md');
   readonly disabled = input(false);
+  readonly loading = input(false);
   readonly type = input('button');
   readonly block = input(false);
   readonly clicked = output<MouseEvent>();
