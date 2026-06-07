@@ -21,21 +21,37 @@ import { ButtonComponent } from '../../shared/components/button.component';
           <div class="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">{{ error() }}</div>
         }
 
-        <app-input formControlName="email" label="Email" type="email" placeholder="tu@email.com" />
-        @if (form.controls.email.touched && form.controls.email.invalid) {
-          <p class="mt-1 text-xs text-red-600">Email válido requerido</p>
-        }
+        <app-input
+          formControlName="email"
+          label="Email"
+          type="email"
+          placeholder="tu@email.com"
+          [error]="form.controls.email.touched && form.controls.email.invalid ? 'Email válido requerido' : ''"
+        />
 
-        <app-input formControlName="password" label="Contraseña" type="password" placeholder="••••••••" />
-        @if (form.controls.password.touched && form.controls.password.invalid) {
-          <p class="mt-1 text-xs text-red-600">Mínimo 8 caracteres</p>
-        }
+        <app-input
+          formControlName="password"
+          label="Contraseña"
+          type="password"
+          placeholder="••••••••"
+          [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 8 caracteres' : ''"
+        />
 
-        <app-input formControlName="username" label="Nombre de usuario" placeholder="ej: metalero89" />
+        <app-input
+          formControlName="username"
+          label="Nombre de usuario"
+          placeholder="ej: metalero89"
+          [error]="form.controls.username.touched && form.controls.username.invalid ? 'Mínimo 3 caracteres' : ''"
+        />
 
-        <app-input formControlName="tenantName" label="Nombre de la empresa" placeholder="ej: Aceros del Sur" />
+        <app-input
+          formControlName="tenantName"
+          label="Nombre de la empresa"
+          placeholder="ej: Aceros del Sur"
+          [error]="form.controls.tenantName.touched && form.controls.tenantName.invalid ? 'Nombre requerido' : ''"
+        />
 
-        <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid">
+        <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid || loading()" [loading]="loading()">
           Registrarse
         </app-button>
 
@@ -53,21 +69,24 @@ export class RegisterComponent {
   private readonly router = inject(Router);
 
   readonly error = signal('');
+  readonly loading = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    username: [''],
-    tenantName: [''],
+    username: ['', [Validators.minLength(3)]],
+    tenantName: ['', [Validators.required]],
   });
 
   register(): void {
     if (this.form.invalid) return;
 
     this.error.set('');
+    this.loading.set(true);
     this.auth.register(this.form.getRawValue()).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
         this.error.set(err.error?.detail ?? err.error?.message ?? 'Error al registrarse');
       },
     });

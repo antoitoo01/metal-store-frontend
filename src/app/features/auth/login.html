@@ -21,7 +21,7 @@
       [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 8 caracteres' : ''"
     />
 
-    <app-button type="submit" [disabled]="form.invalid" variant="primary" size="lg" [block]="true">
+    <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid || loading()" [loading]="loading()">
       Ingresar
     </app-button>
 
