@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { InventoryItemResponse, Page } from '../../core/models/api.types';
+import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
 import { ButtonComponent } from '../../shared/components/button.component';
 import { PaginationComponent } from '../../shared/components/pagination.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
@@ -59,14 +60,18 @@ export class InventoryListComponent {
   readonly page = signal(0);
   readonly size = 20;
 
+  readonly queryKey = computed(() => ['inventory', { page: this.page(), size: this.size, q: this.q() }] as unknown[]);
+
   readonly query = injectQuery<Page<InventoryItemResponse>>(() => ({
-    queryKey: ['inventory', { page: this.page(), q: this.q() }],
+    queryKey: this.queryKey(),
     queryFn: () => firstValueFrom(this.inventory.list(this.page(), this.size, this.q() || undefined)),
   }));
 
-  readonly deleteMutation = injectMutation<void, Error, string>(() => ({
+  readonly deleteMutation = injectMutation<void, Error, string, PageData<InventoryItemResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.inventory.remove(id)),
-    onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+    onMutate: (id) => optimisticRemoveFromPage<InventoryItemResponse>(this.queryClient, this.queryKey(), id),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['inventory'] }),
   }));
 
   search(term: string) {

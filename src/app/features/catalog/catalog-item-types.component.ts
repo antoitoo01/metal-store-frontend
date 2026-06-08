@@ -4,6 +4,7 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from './catalog.service';
 import { TypeResponse, Page } from '../../core/models/api.types';
+import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
 import { ButtonComponent } from '../../shared/components/button.component';
 import { InputComponent } from '../../shared/components/input.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
@@ -49,12 +50,14 @@ export class CatalogItemTypesComponent {
 
   readonly createMutation = injectMutation<TypeResponse, Error, string>(() => ({
     mutationFn: (name) => firstValueFrom(this.catalog.createItemType({ name })),
-    onSuccess: () => { this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }); this.newName.set(''); },
+    onSettled: () => { this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }); this.newName.set(''); },
   }));
 
-  readonly deleteMutation = injectMutation<void, Error, string>(() => ({
+  readonly deleteMutation = injectMutation<void, Error, string, PageData<TypeResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.catalog.deleteItemType(id)),
-    onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }),
+    onMutate: (id) => optimisticRemoveFromPage<TypeResponse>(this.queryClient, ['catalog-item-types'], id),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, ['catalog-item-types'], context); },
+    onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }),
   }));
 
   createType() {

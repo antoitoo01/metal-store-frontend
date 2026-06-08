@@ -4,7 +4,7 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { QuoteService } from './quote.service';
-import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest } from '../../core/models/api.types';
+import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest, QuoteStatus } from '../../core/models/api.types';
 import { ButtonComponent } from '../../shared/components/button.component';
 import { InputComponent } from '../../shared/components/input.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
@@ -12,6 +12,7 @@ import { BackLinkComponent } from '../../shared/components/back-link.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
 import { CardComponent } from '../../shared/components/card.component';
+import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '../../core/services/optimistic-utils';
 
 @Component({
   selector: 'app-quote-detail',
@@ -118,7 +119,7 @@ export class QuoteDetailComponent {
     queryFn: () => firstValueFrom(this.quoteService.getLines(this.id)),
   }));
 
-  readonly statusMutation = injectMutation<QuoteResponse, Error, string>(() => ({
+  readonly statusMutation = injectMutation<QuoteResponse, Error, string, { previous: QuoteResponse | undefined }>(() => ({
     mutationFn: (action) => {
       const map: Record<string, () => import('rxjs').Observable<QuoteResponse>> = {
         issue: () => this.quoteService.issue(this.id),
@@ -128,24 +129,51 @@ export class QuoteDetailComponent {
       };
       return firstValueFrom(map[action]());
     },
-    onSuccess: () => {
+    onMutate: (action) => {
+      const previous = this.queryClient.getQueryData<QuoteResponse>(['quote', this.id]);
+      if (previous) {
+        const statusMap: Record<string, QuoteStatus> = { issue: 'ISSUED', accept: 'ACCEPTED', reject: 'REJECTED', cancel: 'CANCELLED' };
+        this.queryClient.setQueryData(['quote', this.id], { ...previous, status: statusMap[action] ?? previous.status });
+      }
+      return { previous };
+    },
+    onError: (_err, _action, context) => { if (context?.previous) this.queryClient.setQueryData(['quote', this.id], context.previous); },
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quotes'] });
     },
   }));
 
-  readonly addLineMutation = injectMutation<QuoteLineResponse, Error, CreateQuoteLineRequest>(() => ({
+  readonly addLineMutation = injectMutation<QuoteLineResponse, Error, CreateQuoteLineRequest, QuoteLineResponse[] | undefined>(() => ({
     mutationFn: (body) => firstValueFrom(this.quoteService.addLine(this.id, body)),
-    onSuccess: () => {
+    onMutate: (body) => {
+      const tempLine: QuoteLineResponse = {
+        id: `temp-${crypto.randomUUID()}`,
+        quoteId: this.id,
+        lineNumber: body.lineNumber,
+        description: body.description,
+        quantity: body.quantity,
+        unitPrice: body.unitPrice,
+        vatRate: body.vatRate,
+        totalPrice: body.quantity * body.unitPrice * (1 + body.vatRate / 100),
+        profileId: null,
+        itemId: null,
+      };
+      return optimisticAddToArray(this.queryClient, ['quote-lines', this.id], tempLine);
+    },
+    onError: (_err, _body, context) => { if (context) rollbackArray(this.queryClient, ['quote-lines', this.id], context); },
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
       this.newLine = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
     },
   }));
 
-  readonly deleteLineMutation = injectMutation<void, Error, string>(() => ({
+  readonly deleteLineMutation = injectMutation<void, Error, string, QuoteLineResponse[] | undefined>(() => ({
     mutationFn: (lineId) => firstValueFrom(this.quoteService.removeLine(this.id, lineId)),
-    onSuccess: () => {
+    onMutate: (lineId) => optimisticRemoveFromArray<QuoteLineResponse>(this.queryClient, ['quote-lines', this.id], lineId),
+    onError: (_err, lineId, context) => { if (context) rollbackArray(this.queryClient, ['quote-lines', this.id], context); },
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
     },

@@ -4,7 +4,8 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BillingService } from './billing.service';
-import { InvoiceResponse, InvoiceLineResponse, CreateInvoiceLineRequest } from '../../core/models/api.types';
+import { InvoiceResponse, InvoiceLineResponse, CreateInvoiceLineRequest, InvoiceStatus } from '../../core/models/api.types';
+import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '../../core/services/optimistic-utils';
 import { ButtonComponent } from '../../shared/components/button.component';
 import { InputComponent } from '../../shared/components/input.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
@@ -117,7 +118,7 @@ export class InvoiceDetailComponent {
     queryFn: () => firstValueFrom(this.billing.getInvoiceLines(this.id)),
   }));
 
-  readonly statusMutation = injectMutation<InvoiceResponse, Error, string>(() => ({
+  readonly statusMutation = injectMutation<InvoiceResponse, Error, string, { previous: InvoiceResponse | undefined }>(() => ({
     mutationFn: (action) => {
       const map: Record<string, () => import('rxjs').Observable<InvoiceResponse>> = {
         issue: () => this.billing.issue(this.id),
@@ -126,24 +127,51 @@ export class InvoiceDetailComponent {
       };
       return firstValueFrom(map[action]());
     },
-    onSuccess: () => {
+    onMutate: (action) => {
+      const previous = this.queryClient.getQueryData<InvoiceResponse>(['invoice', this.id]);
+      if (previous) {
+        const statusMap: Record<string, InvoiceStatus> = { issue: 'ISSUED', pay: 'PAID', cancel: 'CANCELLED' };
+        this.queryClient.setQueryData(['invoice', this.id], { ...previous, status: statusMap[action] ?? previous.status });
+      }
+      return { previous };
+    },
+    onError: (_err, _action, context) => { if (context?.previous) this.queryClient.setQueryData(['invoice', this.id], context.previous); },
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['invoice', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['invoices'] });
     },
   }));
 
-  readonly addLineMutation = injectMutation<InvoiceLineResponse, Error, CreateInvoiceLineRequest>(() => ({
+  readonly addLineMutation = injectMutation<InvoiceLineResponse, Error, CreateInvoiceLineRequest, InvoiceLineResponse[] | undefined>(() => ({
     mutationFn: (body) => firstValueFrom(this.billing.addInvoiceLine(this.id, body)),
-    onSuccess: () => {
+    onMutate: (body) => {
+      const tempLine: InvoiceLineResponse = {
+        id: `temp-${crypto.randomUUID()}`,
+        invoiceId: this.id,
+        lineNumber: body.lineNumber,
+        description: body.description,
+        quantity: body.quantity,
+        unitPrice: body.unitPrice,
+        vatRate: body.vatRate,
+        totalPrice: body.quantity * body.unitPrice * (1 + body.vatRate / 100),
+        profileId: null,
+        itemId: null,
+      };
+      return optimisticAddToArray(this.queryClient, ['invoice-lines', this.id], tempLine);
+    },
+    onError: (_err, _body, context) => { if (context) rollbackArray(this.queryClient, ['invoice-lines', this.id], context); },
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['invoice-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['invoice', this.id] });
       this.newLine = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
     },
   }));
 
-  readonly deleteLineMutation = injectMutation<void, Error, string>(() => ({
+  readonly deleteLineMutation = injectMutation<void, Error, string, InvoiceLineResponse[] | undefined>(() => ({
     mutationFn: (lineId) => firstValueFrom(this.billing.removeInvoiceLine(this.id, lineId)),
-    onSuccess: () => {
+    onMutate: (lineId) => optimisticRemoveFromArray<InvoiceLineResponse>(this.queryClient, ['invoice-lines', this.id], lineId),
+    onError: (_err, lineId, context) => { if (context) rollbackArray(this.queryClient, ['invoice-lines', this.id], context); },
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['invoice-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['invoice', this.id] });
     },

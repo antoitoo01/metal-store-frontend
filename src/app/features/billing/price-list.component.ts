@@ -4,6 +4,7 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BillingService } from './billing.service';
 import { PriceResponse, UpsertPriceRequest, Page } from '../../core/models/api.types';
+import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
 import { ButtonComponent } from '../../shared/components/button.component';
 import { InputComponent } from '../../shared/components/input.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
@@ -97,15 +98,17 @@ export class PriceListComponent {
 
   readonly createMutation = injectMutation<PriceResponse, Error, UpsertPriceRequest>(() => ({
     mutationFn: (body) => firstValueFrom(this.billing.createPrice(body)),
-    onSuccess: () => {
+    onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['prices'] });
       this.priceForm.reset({ unitPrice: 0 });
     },
   }));
 
-  readonly deleteMutation = injectMutation<void, Error, string>(() => ({
+  readonly deleteMutation = injectMutation<void, Error, string, PageData<PriceResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.billing.deletePrice(id)),
-    onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['prices'] }),
+    onMutate: (id) => optimisticRemoveFromPage<PriceResponse>(this.queryClient, ['prices'], id),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, ['prices'], context); },
+    onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['prices'] }),
   }));
 
   createPrice() {

@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { ClientService } from './client.service';
 import { ClientResponse, Page } from '../../core/models/api.types';
+import { PageData, optimisticRemoveFromPage, optimisticUpdateInPage, rollbackPage } from '../../core/services/optimistic-utils';
 import { ButtonComponent } from '../../shared/components/button.component';
 import { PaginationComponent } from '../../shared/components/pagination.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
@@ -24,24 +25,32 @@ export class ClientListComponent {
   readonly page = signal(0);
   readonly size = 20;
 
+  readonly queryKey = computed(() => ['clients', { page: this.page(), size: this.size, q: this.q() }] as unknown[]);
+
   readonly query = injectQuery<Page<ClientResponse>>(() => ({
-    queryKey: ['clients', { page: this.page(), size: this.size, q: this.q() }],
+    queryKey: this.queryKey(),
     queryFn: () => firstValueFrom(this.clientService.list(this.page(), this.size, this.q() || undefined)),
   }));
 
-  readonly deleteMutation = injectMutation<void, Error, string>(() => ({
+  readonly deleteMutation = injectMutation<void, Error, string, PageData<ClientResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.clientService.remove(id)),
-    onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onMutate: (id) => optimisticRemoveFromPage<ClientResponse>(this.queryClient, this.queryKey(), id),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
   }));
 
-  readonly activateMutation = injectMutation<ClientResponse, Error, string>(() => ({
+  readonly activateMutation = injectMutation<ClientResponse, Error, string, PageData<ClientResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.clientService.activate(id)),
-    onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onMutate: (id) => optimisticUpdateInPage<ClientResponse>(this.queryClient, this.queryKey(), id, (c) => ({ ...c, status: 'ACTIVE' })),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
   }));
 
-  readonly deactivateMutation = injectMutation<ClientResponse, Error, string>(() => ({
+  readonly deactivateMutation = injectMutation<ClientResponse, Error, string, PageData<ClientResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.clientService.deactivate(id)),
-    onSuccess: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
+    onMutate: (id) => optimisticUpdateInPage<ClientResponse>(this.queryClient, this.queryKey(), id, (c) => ({ ...c, status: 'INACTIVE' })),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
   }));
 
   search(term: string): void {
