@@ -54,6 +54,10 @@ export interface LoginResponse {
   tenantName: string;
 }
 
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
 export interface UserResponse {
   id: string;
   username: string;
