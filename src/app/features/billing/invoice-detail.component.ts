@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { ActivatedRoute } from '@angular/router';
@@ -13,10 +13,11 @@ import { BackLinkComponent } from '../../shared/components/back-link.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
 import { CardComponent } from '../../shared/components/card.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 
 @Component({
   selector: 'app-invoice-detail',
-  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
+  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
   template: `
     <div>
       <app-back-link path="/billing/invoices" label="Volver a facturas" />
@@ -36,11 +37,11 @@ import { CardComponent } from '../../shared/components/card.component';
           <div class="mt-4 flex gap-2">
             @if (inv.status === 'DRAFT') {
               <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
-              <app-button variant="secondary" size="sm" (clicked)="transition('cancel')" [disabled]="statusMutation.isPending()">Cancelar</app-button>
+              <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
             @if (inv.status === 'ISSUED') {
               <app-button variant="primary" size="sm" (clicked)="transition('pay')" [disabled]="statusMutation.isPending()">Marcar pagada</app-button>
-              <app-button variant="secondary" size="sm" (clicked)="transition('cancel')" [disabled]="statusMutation.isPending()">Cancelar</app-button>
+              <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
           </div>
         }
@@ -98,6 +99,22 @@ import { CardComponent } from '../../shared/components/card.component';
           }
         </app-data-state>
       </app-data-state>
+
+      <app-confirm-dialog
+        [visible]="showCancelDialog()"
+        title="Cancelar factura"
+        message="¿Estás seguro de que querés cancelar esta factura? Esta acción no se puede deshacer."
+        variant="warning"
+        (confirmed)="executeCancel()"
+        (cancelled)="showCancelDialog.set(false)" />
+
+      <app-confirm-dialog
+        [visible]="showDeleteLineDialog()"
+        title="Eliminar línea"
+        message="¿Estás seguro de que querés eliminar esta línea?"
+        variant="danger"
+        (confirmed)="executeDeleteLine()"
+        (cancelled)="showDeleteLineDialog.set(false)" />
     </div>
   `,
 })
@@ -179,8 +196,21 @@ export class InvoiceDetailComponent {
 
   newLine: CreateInvoiceLineRequest = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
 
+  readonly showCancelDialog = signal(false);
+  readonly showDeleteLineDialog = signal(false);
+  private deleteLineTarget = '';
+
   transition(action: string) {
     this.statusMutation.mutate(action);
+  }
+
+  confirmCancel() {
+    this.showCancelDialog.set(true);
+  }
+
+  executeCancel() {
+    this.statusMutation.mutate('cancel');
+    this.showCancelDialog.set(false);
   }
 
   addLine() {
@@ -189,6 +219,12 @@ export class InvoiceDetailComponent {
   }
 
   removeLine(lineId: string) {
-    this.deleteLineMutation.mutate(lineId);
+    this.deleteLineTarget = lineId;
+    this.showDeleteLineDialog.set(true);
+  }
+
+  executeDeleteLine() {
+    this.deleteLineMutation.mutate(this.deleteLineTarget);
+    this.showDeleteLineDialog.set(false);
   }
 }

@@ -11,10 +11,11 @@ import { PaginationComponent } from '../../shared/components/pagination.componen
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
 import { SearchInputComponent } from '../../shared/components/search-input.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 
 @Component({
   selector: 'app-inventory-list',
-  imports: [RouterLink, DatePipe, ButtonComponent, PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent],
+  imports: [RouterLink, DatePipe, ButtonComponent, PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent, ConfirmDialogComponent],
   template: `
     <div class="p-6">
       <div class="flex items-center justify-between">
@@ -49,6 +50,14 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
           <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
         </div>
       </app-data-state>
+
+      <app-confirm-dialog
+        [visible]="showDeleteDialog()"
+        title="Eliminar item"
+        message="¿Estás seguro de que querés eliminar este item del inventario?"
+        variant="danger"
+        (confirmed)="executeDelete()"
+        (cancelled)="showDeleteDialog.set(false)" />
     </div>
   `,
 })
@@ -74,6 +83,9 @@ export class InventoryListComponent {
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['inventory'] }),
   }));
 
+  readonly showDeleteDialog = signal(false);
+  private deleteTarget = '';
+
   search(term: string) {
     this.q.set(term);
     this.page.set(0);
@@ -84,6 +96,12 @@ export class InventoryListComponent {
   }
 
   deleteItem(id: string) {
-    this.deleteMutation.mutate(id);
+    this.deleteTarget = id;
+    this.showDeleteDialog.set(true);
+  }
+
+  executeDelete() {
+    this.deleteMutation.mutate(this.deleteTarget);
+    this.showDeleteDialog.set(false);
   }
 }

@@ -9,10 +9,11 @@ import { ButtonComponent } from '../../shared/components/button.component';
 import { InputComponent } from '../../shared/components/input.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 
 @Component({
   selector: 'app-catalog-item-types',
-  imports: [FormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent],
+  imports: [FormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent, ConfirmDialogComponent],
   template: `
     <div>
       <div class="flex items-center gap-2">
@@ -28,12 +29,20 @@ import { TableComponent } from '../../shared/components/table.component';
             <tr>
               <td class="text-gray-900 dark:text-white">{{ t.name }}</td>
               <td>
-                <app-button variant="ghost" size="sm" (clicked)="deleteType(t.id)" [disabled]="deleteMutation.isPending()">Eliminar</app-button>
+                <app-button variant="ghost" size="sm" (clicked)="confirmDelete(t.id)" [disabled]="deleteMutation.isPending()">Eliminar</app-button>
               </td>
             </tr>
           }
         </app-table>
       </app-data-state>
+
+      <app-confirm-dialog
+        [visible]="showDeleteDialog()"
+        title="Eliminar tipo"
+        message="¿Estás seguro de que querés eliminar este tipo de ítem? Esta acción no se puede deshacer."
+        variant="danger"
+        (confirmed)="executeDelete()"
+        (cancelled)="showDeleteDialog.set(false)" />
     </div>
   `,
 })
@@ -65,7 +74,16 @@ export class CatalogItemTypesComponent {
     this.createMutation.mutate(this.newName().trim());
   }
 
-  deleteType(id: string) {
-    this.deleteMutation.mutate(id);
+  readonly showDeleteDialog = signal(false);
+  private deleteTarget = '';
+
+  confirmDelete(id: string) {
+    this.deleteTarget = id;
+    this.showDeleteDialog.set(true);
+  }
+
+  executeDelete() {
+    this.deleteMutation.mutate(this.deleteTarget);
+    this.showDeleteDialog.set(false);
   }
 }

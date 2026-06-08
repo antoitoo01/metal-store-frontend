@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { ActivatedRoute } from '@angular/router';
@@ -12,11 +12,12 @@ import { BackLinkComponent } from '../../shared/components/back-link.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
 import { CardComponent } from '../../shared/components/card.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '../../core/services/optimistic-utils';
 
 @Component({
   selector: 'app-quote-detail',
-  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent],
+  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/quotes" label="Volver a presupuestos" />
@@ -36,12 +37,12 @@ import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '
           <div class="mt-4 flex gap-2">
             @if (q.status === 'DRAFT') {
               <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
-              <app-button variant="secondary" size="sm" (clicked)="transition('cancel')" [disabled]="statusMutation.isPending()">Cancelar</app-button>
+              <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
             @if (q.status === 'ISSUED') {
               <app-button variant="primary" size="sm" (clicked)="transition('accept')" [disabled]="statusMutation.isPending()">Aceptar</app-button>
               <app-button variant="danger" size="sm" (clicked)="transition('reject')" [disabled]="statusMutation.isPending()">Rechazar</app-button>
-              <app-button variant="secondary" size="sm" (clicked)="transition('cancel')" [disabled]="statusMutation.isPending()">Cancelar</app-button>
+              <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
           </div>
         }
@@ -99,6 +100,22 @@ import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '
           }
         </app-data-state>
       </app-data-state>
+
+      <app-confirm-dialog
+        [visible]="showCancelDialog()"
+        title="Cancelar presupuesto"
+        message="¿Estás seguro de que querés cancelar este presupuesto? Esta acción no se puede deshacer."
+        variant="warning"
+        (confirmed)="executeCancel()"
+        (cancelled)="showCancelDialog.set(false)" />
+
+      <app-confirm-dialog
+        [visible]="showDeleteLineDialog()"
+        title="Eliminar línea"
+        message="¿Estás seguro de que querés eliminar esta línea?"
+        variant="danger"
+        (confirmed)="executeDeleteLine()"
+        (cancelled)="showDeleteLineDialog.set(false)" />
     </div>
   `,
 })
@@ -181,8 +198,21 @@ export class QuoteDetailComponent {
 
   newLine: CreateQuoteLineRequest = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
 
+  readonly showCancelDialog = signal(false);
+  readonly showDeleteLineDialog = signal(false);
+  private deleteLineTarget = '';
+
   transition(action: string) {
     this.statusMutation.mutate(action);
+  }
+
+  confirmCancel() {
+    this.showCancelDialog.set(true);
+  }
+
+  executeCancel() {
+    this.statusMutation.mutate('cancel');
+    this.showCancelDialog.set(false);
   }
 
   addLine() {
@@ -191,6 +221,12 @@ export class QuoteDetailComponent {
   }
 
   removeLine(lineId: string) {
-    this.deleteLineMutation.mutate(lineId);
+    this.deleteLineTarget = lineId;
+    this.showDeleteLineDialog.set(true);
+  }
+
+  executeDeleteLine() {
+    this.deleteLineMutation.mutate(this.deleteLineTarget);
+    this.showDeleteLineDialog.set(false);
   }
 }

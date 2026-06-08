@@ -10,10 +10,11 @@ import { InputComponent } from '../../shared/components/input.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
 import { SearchInputComponent } from '../../shared/components/search-input.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 
 @Component({
   selector: 'app-price-list',
-  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent, SearchInputComponent],
+  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent, SearchInputComponent, ConfirmDialogComponent],
   template: `
     <div>
       <details class="mb-6 rounded-lg border dark:border-gray-700">
@@ -51,12 +52,20 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
           <td class="text-gray-600 dark:text-gray-400">{{ p.validFrom ?? '—' }}</td>
           <td class="text-gray-600 dark:text-gray-400">{{ p.validTo ?? '—' }}</td>
               <td>
-                <app-button variant="ghost" size="sm" (clicked)="deletePrice(p.id)" [disabled]="deleteMutation.isPending()">Eliminar</app-button>
+                <app-button variant="ghost" size="sm" (clicked)="confirmDelete(p.id)" [disabled]="deleteMutation.isPending()">Eliminar</app-button>
               </td>
             </tr>
           }
         </app-table>
       </app-data-state>
+
+      <app-confirm-dialog
+        [visible]="showDeleteDialog()"
+        title="Eliminar precio"
+        message="¿Estás seguro de que querés eliminar este precio? Esta acción no se puede deshacer."
+        variant="danger"
+        (confirmed)="executeDelete()"
+        (cancelled)="showDeleteDialog.set(false)" />
     </div>
   `,
 })
@@ -123,7 +132,16 @@ export class PriceListComponent {
     } as UpsertPriceRequest);
   }
 
-  deletePrice(id: string) {
-    this.deleteMutation.mutate(id);
+  readonly showDeleteDialog = signal(false);
+  private deleteTarget = '';
+
+  confirmDelete(id: string) {
+    this.deleteTarget = id;
+    this.showDeleteDialog.set(true);
+  }
+
+  executeDelete() {
+    this.deleteMutation.mutate(this.deleteTarget);
+    this.showDeleteDialog.set(false);
   }
 }
