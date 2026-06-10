@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
+import { RouterLink } from '@angular/router';
 import { CatalogService } from './catalog.service';
 import { CatalogItem, Page } from '../../core/models/api.types';
 import { PaginationComponent } from '../../shared/components/pagination.component';
@@ -10,7 +11,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
 
 @Component({
   selector: 'app-catalog-items',
-  imports: [PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent],
+  imports: [RouterLink, PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent],
   template: `
     <div>
       <div class="flex items-center gap-4">
@@ -18,7 +19,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
       </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar artículos' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Designación', 'SKU', 'Tipo', 'Material', 'Peso (kg/m)', 'Precio est. (€/kg)']">
+        <app-table [columns]="['Designación', 'SKU', 'Tipo', 'Material', 'Peso (kg/m)', 'Precio est. (€/kg)', '']">
           @for (item of query.data()?.content; track item.id) {
             <tr>
           <td class="font-medium text-gray-900 dark:text-white">{{ item.designation }}</td>
@@ -27,6 +28,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
           <td class="text-gray-600 dark:text-gray-400">{{ item.material ?? '—' }}</td>
           <td class="text-gray-600 dark:text-gray-400">{{ item.weightKgM ?? '—' }}</td>
           <td class="text-gray-600 dark:text-gray-400">{{ item.estimatedPriceKg }}</td>
+          <td><a [routerLink]="['/catalog/items', item.id]" class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400">Ver</a></td>
             </tr>
           }
         </app-table>

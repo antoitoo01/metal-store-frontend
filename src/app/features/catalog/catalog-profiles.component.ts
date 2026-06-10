@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
+import { RouterLink } from '@angular/router';
 import { CatalogService } from './catalog.service';
 import { CatalogProfile, Page } from '../../core/models/api.types';
 import { PaginationComponent } from '../../shared/components/pagination.component';
@@ -10,7 +11,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
 
 @Component({
   selector: 'app-catalog-profiles',
-  imports: [PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent],
+  imports: [RouterLink, PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent],
   template: `
     <div>
       <div class="flex items-center gap-4">
@@ -23,7 +24,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
       </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar perfiles' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Designación', 'Familia', 'Norma', 'Peso (kg/m)', 'Área (cm²)']">
+        <app-table [columns]="['Designación', 'Familia', 'Norma', 'Peso (kg/m)', 'Área (cm²)', '']">
           @for (p of query.data()?.content; track p.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ p.designation }}</td>
@@ -31,6 +32,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
               <td class="text-gray-600 dark:text-gray-400">{{ p.family.standard }}</td>
               <td class="text-gray-600 dark:text-gray-400">{{ p.weightKgM ?? '—' }}</td>
               <td class="text-gray-600 dark:text-gray-400">{{ p.areaCm2 ?? '—' }}</td>
+              <td><a [routerLink]="['/catalog/profiles', p.id]" class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400">Ver</a></td>
             </tr>
           }
         </app-table>

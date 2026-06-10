@@ -30,7 +30,9 @@ export const routes: Routes = [
         children: [
           { path: '', redirectTo: 'profiles', pathMatch: 'full' },
           { path: 'profiles', loadComponent: () => import('./features/catalog/catalog-profiles.component').then((c) => c.CatalogProfilesComponent) },
+          { path: 'profiles/:id', loadComponent: () => import('./features/catalog/catalog-profile-detail.component').then((c) => c.CatalogProfileDetailComponent) },
           { path: 'items', loadComponent: () => import('./features/catalog/catalog-items.component').then((c) => c.CatalogItemsComponent) },
+          { path: 'items/:id', loadComponent: () => import('./features/catalog/catalog-item-detail.component').then((c) => c.CatalogItemDetailComponent) },
           { path: 'families', loadComponent: () => import('./features/catalog/catalog-families.component').then((c) => c.CatalogFamiliesComponent) },
           { path: 'item-types', loadComponent: () => import('./features/catalog/catalog-item-types.component').then((c) => c.CatalogItemTypesComponent) },
         ],
@@ -42,6 +44,12 @@ export const routes: Routes = [
           { path: 'new', loadComponent: () => import('./features/inventory/inventory-form.component').then((c) => c.InventoryFormComponent) },
           { path: ':id', loadComponent: () => import('./features/inventory/inventory-form.component').then((c) => c.InventoryFormComponent) },
           { path: ':id/edit', loadComponent: () => import('./features/inventory/inventory-form.component').then((c) => c.InventoryFormComponent) },
+        ],
+      },
+      {
+        path: 'users',
+        children: [
+          { path: '', loadComponent: () => import('./features/users/user-list.component').then((c) => c.UserListComponent) },
         ],
       },
       {
