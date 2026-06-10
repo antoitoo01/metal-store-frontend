@@ -29,6 +29,7 @@ describe('SidebarComponent', () => {
     expect(labels).toContain('Inventario');
     expect(labels).toContain('Presupuestos');
     expect(labels).toContain('Facturación');
+    expect(labels).toContain('Usuarios');
   });
 
   it('links to correct routes', () => {
@@ -40,11 +41,12 @@ describe('SidebarComponent', () => {
     expect(routes).toContain('/inventory');
     expect(routes).toContain('/quotes');
     expect(routes).toContain('/billing');
+    expect(routes).toContain('/users');
   });
 
   it('has routerLinkActive directive on nav items', () => {
     const links: HTMLAnchorElement[] = fixture.nativeElement.querySelectorAll('a[routerlinkactive]');
     // All nav links (excluding the brand link) should have routerLinkActive
-    expect(links.length).toBeGreaterThanOrEqual(6);
+    expect(links.length).toBeGreaterThanOrEqual(7);
   });
 });
