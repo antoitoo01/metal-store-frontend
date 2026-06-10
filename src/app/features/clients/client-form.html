@@ -3,16 +3,59 @@
 
   <h1 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ isEdit ? 'Editar' : 'Nuevo' }} cliente</h1>
 
-  <form [formGroup]="form" (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
-    <app-input formControlName="name" label="Nombre *" />
-    <app-input formControlName="email" label="Email" type="email" />
-    <app-input formControlName="phone" label="Teléfono" />
-    <app-input formControlName="address" label="Dirección" />
-    <app-input formControlName="vatNumber" label="CIF / NIF" />
+  <form (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="name">Nombre *</label>
+      <input
+        id="name"
+        [formField]="form.name"
+        placeholder="Nombre del cliente"
+        class="block w-full rounded-lg border px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+        [class.border-red-300]="!!nameError()"
+        [class.border-gray-300]="!nameError()"
+      />
+      @if (nameError()) {
+        <p class="mt-1 text-sm text-red-600">{{ nameError() }}</p>
+      }
+    </div>
 
-    <app-input formControlName="notes" label="Notas" variant="textarea" />
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        [formField]="form.email"
+        placeholder="email@ejemplo.com"
+        class="block w-full rounded-lg border px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"
+        [class.border-red-300]="!!emailError()"
+        [class.border-gray-300]="!emailError()"
+      />
+      @if (emailError()) {
+        <p class="mt-1 text-sm text-red-600">{{ emailError() }}</p>
+      }
+    </div>
 
-    <app-button type="submit" [disabled]="form.invalid || saveMutation.isPending()">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="phone">Teléfono</label>
+      <input id="phone" [formField]="form.phone" placeholder="+34 600 000 000" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="address">Dirección</label>
+      <input id="address" [formField]="form.address" placeholder="Calle, ciudad, etc." class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="vatNumber">CIF / NIF</label>
+      <input id="vatNumber" [formField]="form.vatNumber" placeholder="B-12345678" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="notes">Notas</label>
+      <textarea id="notes" [formField]="form.notes" placeholder="Notas adicionales…" rows="3" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600"></textarea>
+    </div>
+
+    <app-button type="submit" [disabled]="form().invalid() || saveMutation.isPending()">
       {{ saveMutation.isPending() ? 'Guardando…' : 'Guardar' }}
     </app-button>
   </form>

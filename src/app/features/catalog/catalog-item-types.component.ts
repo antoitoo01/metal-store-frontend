@@ -1,27 +1,30 @@
 import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { CatalogService } from './catalog.service';
 import { TypeResponse, Page } from '../../core/models/api.types';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
 import { ButtonComponent } from '../../shared/components/button.component';
-import { InputComponent } from '../../shared/components/input.component';
 import { DataStateComponent } from '../../shared/components/data-state.component';
 import { TableComponent } from '../../shared/components/table.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 
 @Component({
   selector: 'app-catalog-item-types',
-  imports: [FormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent, ConfirmDialogComponent],
+  imports: [FormField, ButtonComponent, DataStateComponent, TableComponent, ConfirmDialogComponent],
   template: `
     <div>
-      <div class="flex items-center gap-2">
-        <app-input [(ngModel)]="newName" placeholder="Nuevo tipo…" [ngModelOptions]="{standalone: true}" />
-        <app-button (clicked)="createType()" [disabled]="!newName() || createMutation.isPending()">
+      <form (ngSubmit)="createType()" class="flex items-center gap-2">
+        <input
+          [formField]="form.newName"
+          placeholder="Nuevo tipo…"
+          class="block w-full max-w-xs rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600"
+        />
+        <app-button type="submit" [disabled]="!model().newName.trim() || createMutation.isPending()">
           {{ createMutation.isPending() ? '…' : 'Crear' }}
         </app-button>
-      </div>
+      </form>
 
       <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
         <app-table [columns]="['Nombre', 'Acciones']">
@@ -50,7 +53,8 @@ export class CatalogItemTypesComponent {
   private readonly catalog = inject(CatalogService);
   private readonly queryClient = inject(QueryClient);
 
-  readonly newName = signal('');
+  readonly model = signal({ newName: '' });
+  readonly form = form(this.model);
 
   readonly query = injectQuery<Page<TypeResponse>>(() => ({
     queryKey: ['catalog-item-types'],
@@ -59,7 +63,7 @@ export class CatalogItemTypesComponent {
 
   readonly createMutation = injectMutation<TypeResponse, Error, string>(() => ({
     mutationFn: (name) => firstValueFrom(this.catalog.createItemType({ name })),
-    onSettled: () => { this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }); this.newName.set(''); },
+    onSettled: () => { this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }); this.model.set({ newName: '' }); },
   }));
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<TypeResponse> | undefined>(() => ({
@@ -70,8 +74,9 @@ export class CatalogItemTypesComponent {
   }));
 
   createType() {
-    if (!this.newName().trim()) return;
-    this.createMutation.mutate(this.newName().trim());
+    const name = this.model().newName.trim();
+    if (!name) return;
+    this.createMutation.mutate(name);
   }
 
   readonly showDeleteDialog = signal(false);

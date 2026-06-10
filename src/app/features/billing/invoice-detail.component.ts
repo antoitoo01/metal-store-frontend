@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { BillingService } from './billing.service';
 import { InvoiceResponse, InvoiceLineResponse, CreateInvoiceLineRequest, InvoiceStatus } from '../../core/models/api.types';
 import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '../../core/services/optimistic-utils';
@@ -14,10 +14,11 @@ import { DataStateComponent } from '../../shared/components/data-state.component
 import { TableComponent } from '../../shared/components/table.component';
 import { CardComponent } from '../../shared/components/card.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+import { PrintService } from '../../core/services/print.service';
 
 @Component({
   selector: 'app-invoice-detail',
-  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
+  imports: [FormField, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
   template: `
     <div>
       <app-back-link path="/billing/invoices" label="Volver a facturas" />
@@ -33,18 +34,19 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
           <app-status-badge [status]="inv.status" />
         </div>
 
-        @if (inv.status === 'DRAFT' || inv.status === 'ISSUED') {
-          <div class="mt-4 flex gap-2">
-            @if (inv.status === 'DRAFT') {
-              <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
-              <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
-            }
-            @if (inv.status === 'ISSUED') {
-              <app-button variant="primary" size="sm" (clicked)="transition('pay')" [disabled]="statusMutation.isPending()">Marcar pagada</app-button>
-              <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
-            }
-          </div>
-        }
+        <div class="mt-4 flex gap-2">
+          @if (inv.status === 'DRAFT') {
+            <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
+            <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
+          }
+          @if (inv.status === 'ISSUED') {
+            <app-button variant="primary" size="sm" (clicked)="transition('pay')" [disabled]="statusMutation.isPending()">Marcar pagada</app-button>
+            <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
+          }
+          @if (inv.status === 'ISSUED' || inv.status === 'PAID') {
+            <app-button variant="outline" size="sm" (clicked)="exportPdf()">Exportar PDF</app-button>
+          }
+        </div>
 
         <div class="mt-6 grid grid-cols-3 gap-4 text-sm">
           <div><span class="font-medium text-gray-700 dark:text-gray-300">Fecha:</span> {{ inv.issueDate }}</div>
@@ -83,15 +85,15 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
               <div body class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Añadir línea</h3>
 
-                <app-input [(ngModel)]="newLine.description" label="Descripción *" [ngModelOptions]="{standalone: true}" />
+                <app-input [formField]="lineForm.description" label="Descripción *" />
 
                 <div class="grid grid-cols-3 gap-3">
-                  <app-input type="number" [(ngModel)]="newLine.quantity" label="Cantidad *" [ngModelOptions]="{standalone: true}" />
-                  <app-input type="number" step="0.01" [(ngModel)]="newLine.unitPrice" label="Precio ud. *" [ngModelOptions]="{standalone: true}" />
-                  <app-input type="number" step="0.01" [(ngModel)]="newLine.vatRate" label="IVA %" [ngModelOptions]="{standalone: true}" />
+                  <app-input type="number" [formField]="lineForm.quantity" label="Cantidad *" />
+                  <app-input type="number" [formField]="lineForm.unitPrice" label="Precio ud. *" step="0.01" />
+                  <app-input type="number" [formField]="lineForm.vatRate" label="IVA %" step="0.01" />
                 </div>
 
-                <app-button (clicked)="addLine()" [disabled]="!newLine.description || !newLine.quantity || !newLine.unitPrice || addLineMutation.isPending()">
+                <app-button (clicked)="addLine()" [disabled]="!lineModel().description || !lineModel().quantity || !lineModel().unitPrice || addLineMutation.isPending()">
                   {{ addLineMutation.isPending() ? 'Añadiendo…' : 'Añadir línea' }}
                 </app-button>
               </div>
@@ -122,6 +124,7 @@ export class InvoiceDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly billing = inject(BillingService);
   private readonly queryClient = inject(QueryClient);
+  private readonly printService = inject(PrintService);
 
   readonly id = this.route.snapshot.params['id'] as string;
 
@@ -180,7 +183,7 @@ export class InvoiceDetailComponent {
     onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['invoice-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['invoice', this.id] });
-      this.newLine = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
+      this.lineModel.set({ lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 });
     },
   }));
 
@@ -194,7 +197,9 @@ export class InvoiceDetailComponent {
     },
   }));
 
-  newLine: CreateInvoiceLineRequest = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
+  readonly lineModel = signal<CreateInvoiceLineRequest>({ lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 });
+
+  readonly lineForm = form(this.lineModel);
 
   readonly showCancelDialog = signal(false);
   readonly showDeleteLineDialog = signal(false);
@@ -215,7 +220,13 @@ export class InvoiceDetailComponent {
 
   addLine() {
     const nextNumber = (this.linesQuery.data()?.length ?? 0) + 1;
-    this.addLineMutation.mutate({ ...this.newLine, lineNumber: nextNumber });
+    this.addLineMutation.mutate({ ...this.lineModel(), lineNumber: nextNumber });
+  }
+
+  exportPdf() {
+    const invoice = this.invoiceQuery.data();
+    const lines = this.linesQuery.data();
+    if (invoice && lines) this.printService.exportInvoice(invoice, lines);
   }
 
   removeLine(lineId: string) {

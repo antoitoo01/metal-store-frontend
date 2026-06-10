@@ -1,17 +1,24 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, signal, computed } from '@angular/core';
+import { form, FormField, required } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { InputComponent } from '../../shared/components/input.component';
 import { ButtonComponent } from '../../shared/components/button.component';
 
+interface RegisterFormData {
+  email: string;
+  password: string;
+  username: string;
+  tenantName: string;
+}
+
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, InputComponent, ButtonComponent],
+  imports: [FormField, RouterLink, InputComponent, ButtonComponent],
   template: `
     <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
-      <form [formGroup]="form" (ngSubmit)="register()" class="w-full max-w-sm space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
+      <form (ngSubmit)="register()" class="w-full max-w-sm space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
         <div class="space-y-1">
           <h1 class="text-center text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
           <p class="text-center text-sm text-gray-500 dark:text-gray-400">Crea tu cuenta</p>
@@ -22,36 +29,36 @@ import { ButtonComponent } from '../../shared/components/button.component';
         }
 
         <app-input
-          formControlName="email"
+          [formField]="form.email"
           label="Email"
           type="email"
           placeholder="tu@email.com"
-          [error]="form.controls.email.touched && form.controls.email.invalid ? 'Email válido requerido' : ''"
+          [error]="emailError()"
         />
 
         <app-input
-          formControlName="password"
+          [formField]="form.password"
           label="Contraseña"
           type="password"
           placeholder="••••••••"
-          [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 8 caracteres' : ''"
+          [error]="passwordError()"
         />
 
         <app-input
-          formControlName="username"
+          [formField]="form.username"
           label="Nombre de usuario"
           placeholder="ej: metalero89"
-          [error]="form.controls.username.touched && form.controls.username.invalid ? 'Mínimo 3 caracteres' : ''"
+          [error]="usernameError()"
         />
 
         <app-input
-          formControlName="tenantName"
+          [formField]="form.tenantName"
           label="Nombre de la empresa"
           placeholder="ej: Aceros del Sur"
-          [error]="form.controls.tenantName.touched && form.controls.tenantName.invalid ? 'Nombre requerido' : ''"
+          [error]="tenantNameError()"
         />
 
-        <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid || loading()" [loading]="loading()">
+        <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form().invalid() || loading()" [loading]="loading()">
           Registrarse
         </app-button>
 
@@ -64,26 +71,55 @@ import { ButtonComponent } from '../../shared/components/button.component';
   `,
 })
 export class RegisterComponent {
-  private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
   readonly error = signal('');
   readonly loading = signal(false);
 
-  readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    username: ['', [Validators.minLength(3)]],
-    tenantName: ['', [Validators.required]],
+  readonly model = signal<RegisterFormData>({
+    email: '',
+    password: '',
+    username: '',
+    tenantName: '',
+  });
+
+  readonly form = form(this.model, (f) => {
+    required(f.email, { message: 'Email válido requerido' });
+    required(f.password, { message: 'Contraseña requerida' });
+    required(f.tenantName, { message: 'Nombre de empresa requerido' });
+  });
+
+  readonly emailError = computed(() => {
+    const field = this.form.email();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
+  });
+
+  readonly passwordError = computed(() => {
+    const field = this.form.password();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
+  });
+
+  readonly usernameError = computed(() => {
+    const field = this.form.username();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
+  });
+
+  readonly tenantNameError = computed(() => {
+    const field = this.form.tenantName();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
   });
 
   register(): void {
-    if (this.form.invalid) return;
+    if (this.form().invalid()) return;
 
     this.error.set('');
     this.loading.set(true);
-    this.auth.register(this.form.getRawValue()).subscribe({
+    this.auth.register(this.model()).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);

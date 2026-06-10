@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { QuoteService } from './quote.service';
 import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest, QuoteStatus } from '../../core/models/api.types';
 import { ButtonComponent } from '../../shared/components/button.component';
@@ -14,10 +14,11 @@ import { TableComponent } from '../../shared/components/table.component';
 import { CardComponent } from '../../shared/components/card.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '../../core/services/optimistic-utils';
+import { PrintService } from '../../core/services/print.service';
 
 @Component({
   selector: 'app-quote-detail',
-  imports: [FormsModule, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
+  imports: [FormField, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/quotes" label="Volver a presupuestos" />
@@ -33,7 +34,6 @@ import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '
           <app-status-badge [status]="q.status" />
         </div>
 
-        @if (q.status === 'DRAFT' || q.status === 'ISSUED') {
           <div class="mt-4 flex gap-2">
             @if (q.status === 'DRAFT') {
               <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
@@ -44,8 +44,10 @@ import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '
               <app-button variant="danger" size="sm" (clicked)="transition('reject')" [disabled]="statusMutation.isPending()">Rechazar</app-button>
               <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
+            @if (q.status === 'ISSUED' || q.status === 'ACCEPTED' || q.status === 'DRAFT') {
+              <app-button variant="outline" size="sm" (clicked)="exportPdf()">Exportar PDF</app-button>
+            }
           </div>
-        }
 
         <div class="mt-6 grid grid-cols-3 gap-4 text-sm">
           <div><span class="font-medium text-gray-700 dark:text-gray-300">Fecha:</span> {{ q.issueDate }}</div>
@@ -84,15 +86,15 @@ import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '
               <div body class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Añadir línea</h3>
 
-                <app-input [(ngModel)]="newLine.description" label="Descripción *" [ngModelOptions]="{standalone: true}" />
+                <app-input [formField]="lineForm.description" label="Descripción *" />
 
                 <div class="grid grid-cols-3 gap-3">
-                  <app-input type="number" [(ngModel)]="newLine.quantity" label="Cantidad *" [ngModelOptions]="{standalone: true}" />
-                  <app-input type="number" [(ngModel)]="newLine.unitPrice" label="Precio ud. *" step="0.01" [ngModelOptions]="{standalone: true}" />
-                  <app-input type="number" [(ngModel)]="newLine.vatRate" label="IVA %" step="0.01" [ngModelOptions]="{standalone: true}" />
+                  <app-input type="number" [formField]="lineForm.quantity" label="Cantidad *" />
+                  <app-input type="number" [formField]="lineForm.unitPrice" label="Precio ud. *" step="0.01" />
+                  <app-input type="number" [formField]="lineForm.vatRate" label="IVA %" step="0.01" />
                 </div>
 
-                <app-button (clicked)="addLine()" [disabled]="!newLine.description || !newLine.quantity || !newLine.unitPrice || addLineMutation.isPending()">
+                <app-button (clicked)="addLine()" [disabled]="!lineModel().description || !lineModel().quantity || !lineModel().unitPrice || addLineMutation.isPending()">
                   {{ addLineMutation.isPending() ? 'Añadiendo…' : 'Añadir línea' }}
                 </app-button>
               </div>
@@ -123,6 +125,7 @@ export class QuoteDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly quoteService = inject(QuoteService);
   private readonly queryClient = inject(QueryClient);
+  private readonly printService = inject(PrintService);
 
   readonly id = this.route.snapshot.params['id'] as string;
 
@@ -182,7 +185,7 @@ export class QuoteDetailComponent {
     onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
-      this.newLine = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
+      this.lineModel.set({ lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 });
     },
   }));
 
@@ -196,7 +199,9 @@ export class QuoteDetailComponent {
     },
   }));
 
-  newLine: CreateQuoteLineRequest = { lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 };
+  readonly lineModel = signal<CreateQuoteLineRequest>({ lineNumber: 0, description: '', quantity: 1, unitPrice: 0, vatRate: 21 });
+
+  readonly lineForm = form(this.lineModel);
 
   readonly showCancelDialog = signal(false);
   readonly showDeleteLineDialog = signal(false);
@@ -217,7 +222,13 @@ export class QuoteDetailComponent {
 
   addLine() {
     const nextNumber = (this.linesQuery.data()?.length ?? 0) + 1;
-    this.addLineMutation.mutate({ ...this.newLine, lineNumber: nextNumber });
+    this.addLineMutation.mutate({ ...this.lineModel(), lineNumber: nextNumber });
+  }
+
+  exportPdf() {
+    const quote = this.quoteQuery.data();
+    const lines = this.linesQuery.data();
+    if (quote && lines) this.printService.exportQuote(quote, lines);
   }
 
   removeLine(lineId: string) {

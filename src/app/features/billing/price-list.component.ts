@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { form, FormField } from '@angular/forms/signals';
 import { BillingService } from './billing.service';
 import { PriceResponse, UpsertPriceRequest, Page } from '../../core/models/api.types';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
@@ -12,26 +12,35 @@ import { TableComponent } from '../../shared/components/table.component';
 import { SearchInputComponent } from '../../shared/components/search-input.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 
+interface PriceFormData {
+  profileId: string;
+  itemId: string;
+  unitPrice: number;
+  validFrom: string;
+  validTo: string;
+  notes: string;
+}
+
 @Component({
   selector: 'app-price-list',
-  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, DataStateComponent, TableComponent, SearchInputComponent, ConfirmDialogComponent],
+  imports: [FormField, ButtonComponent, InputComponent, DataStateComponent, TableComponent, SearchInputComponent, ConfirmDialogComponent],
   template: `
     <div>
       <details class="mb-6 rounded-lg border dark:border-gray-700">
         <summary class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">Nuevo precio</summary>
         <div class="border-t px-4 py-3 dark:border-gray-700">
-          <form [formGroup]="priceForm" (ngSubmit)="createPrice()" class="space-y-3">
+          <form (ngSubmit)="createPrice()" class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
-              <app-input formControlName="profileId" label="Profile ID" />
-              <app-input formControlName="itemId" label="Item ID" />
+              <app-input [formField]="priceForm.profileId" label="Profile ID" />
+              <app-input [formField]="priceForm.itemId" label="Item ID" />
             </div>
-            <app-input formControlName="unitPrice" label="Precio unitario *" type="number" />
+            <app-input [formField]="priceForm.unitPrice" label="Precio unitario *" type="number" />
             <div class="grid grid-cols-2 gap-3">
-              <app-input formControlName="validFrom" label="Válido desde" type="date" />
-              <app-input formControlName="validTo" label="Válido hasta" type="date" />
+              <app-input [formField]="priceForm.validFrom" label="Válido desde" type="date" />
+              <app-input [formField]="priceForm.validTo" label="Válido hasta" type="date" />
             </div>
-            <app-input formControlName="notes" label="Notas" />
-            <app-button type="submit" [disabled]="!priceForm.value.unitPrice || createMutation.isPending()">
+            <app-input [formField]="priceForm.notes" label="Notas" />
+            <app-button type="submit" [disabled]="!priceModel().unitPrice || createMutation.isPending()">
               {{ createMutation.isPending() ? '…' : 'Crear precio' }}
             </app-button>
           </form>
@@ -73,16 +82,17 @@ export class PriceListComponent {
   private readonly billing = inject(BillingService);
   readonly q = signal('');
   private readonly queryClient = inject(QueryClient);
-  private readonly fb = inject(FormBuilder);
 
-  readonly priceForm = this.fb.group({
-    profileId: [''],
-    itemId: [''],
-    unitPrice: [0, Validators.required],
-    validFrom: [''],
-    validTo: [''],
-    notes: [''],
+  readonly priceModel = signal<PriceFormData>({
+    profileId: '',
+    itemId: '',
+    unitPrice: 0,
+    validFrom: '',
+    validTo: '',
+    notes: '',
   });
+
+  readonly priceForm = form(this.priceModel);
 
   readonly query = injectQuery<Page<PriceResponse>>(() => ({
     queryKey: ['prices'],
@@ -109,7 +119,7 @@ export class PriceListComponent {
     mutationFn: (body) => firstValueFrom(this.billing.createPrice(body)),
     onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['prices'] });
-      this.priceForm.reset({ unitPrice: 0 });
+      this.priceModel.set({ profileId: '', itemId: '', unitPrice: 0, validFrom: '', validTo: '', notes: '' });
     },
   }));
 
@@ -121,14 +131,14 @@ export class PriceListComponent {
   }));
 
   createPrice() {
-    const raw = this.priceForm.value;
+    const m = this.priceModel();
     this.createMutation.mutate({
-      profileId: raw.profileId || undefined,
-      itemId: raw.itemId || undefined,
-      unitPrice: raw.unitPrice!,
-      validFrom: raw.validFrom || undefined,
-      validTo: raw.validTo || undefined,
-      notes: raw.notes || undefined,
+      profileId: m.profileId || undefined,
+      itemId: m.itemId || undefined,
+      unitPrice: m.unitPrice,
+      validFrom: m.validFrom || undefined,
+      validTo: m.validTo || undefined,
+      notes: m.notes || undefined,
     } as UpsertPriceRequest);
   }
 

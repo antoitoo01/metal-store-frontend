@@ -1,21 +1,29 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, effect, computed } from '@angular/core';
+import { signal } from '@angular/core';
+import { form, FormField, required, email } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { injectQuery, injectMutation } from '@tanstack/angular-query-experimental';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ClientService } from './client.service';
 import { CreateClientRequest, ClientResponse } from '../../core/models/api.types';
 import { ButtonComponent } from '../../shared/components/button.component';
-import { InputComponent } from '../../shared/components/input.component';
 import { BackLinkComponent } from '../../shared/components/back-link.component';
+
+interface ClientFormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  vatNumber: string;
+  notes: string;
+}
 
 @Component({
   selector: 'app-client-form',
-  imports: [ReactiveFormsModule, ButtonComponent, InputComponent, BackLinkComponent],
+  imports: [FormField, ButtonComponent, BackLinkComponent],
   templateUrl: './client-form.html',
 })
 export class ClientFormComponent {
-  private readonly fb = inject(FormBuilder);
   private readonly clientService = inject(ClientService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -23,13 +31,30 @@ export class ClientFormComponent {
   readonly id = this.route.snapshot.params['id'] as string | undefined;
   readonly isEdit = !!this.id;
 
-  readonly form = this.fb.group({
-    name: ['', Validators.required],
-    email: [''],
-    phone: [''],
-    address: [''],
-    vatNumber: [''],
-    notes: [''],
+  readonly model = signal<ClientFormData>({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    vatNumber: '',
+    notes: '',
+  });
+
+  readonly form = form(this.model, (f) => {
+    required(f.name, { message: 'El nombre es obligatorio' });
+    email(f.email, { message: 'Email inválido' });
+  });
+
+  readonly nameError = computed(() => {
+    const field = this.form.name();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
+  });
+
+  readonly emailError = computed(() => {
+    const field = this.form.email();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
   });
 
   readonly existing = injectQuery<ClientResponse>(() => ({
@@ -47,13 +72,20 @@ export class ClientFormComponent {
     if (this.isEdit) {
       effect(() => {
         const data = this.existing.data();
-        if (data) this.form.patchValue(data);
+        if (data) this.model.set({
+          name: data.name,
+          email: data.email ?? '',
+          phone: data.phone ?? '',
+          address: data.address ?? '',
+          vatNumber: data.vatNumber ?? '',
+          notes: data.notes ?? '',
+        });
       });
     }
   }
 
   save(): void {
-    if (this.form.invalid) return;
-    this.saveMutation.mutate(this.form.value as CreateClientRequest);
+    if (this.form().invalid()) return;
+    this.saveMutation.mutate(this.model() as CreateClientRequest);
   }
 }

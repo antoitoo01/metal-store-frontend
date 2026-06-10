@@ -1,24 +1,24 @@
 <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
-  <form [formGroup]="form" (ngSubmit)="login()" class="w-full max-w-sm gap-y-7 space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
+  <form (ngSubmit)="login()" class="w-full max-w-sm gap-y-7 space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
     <div class="space-y-1">
       <h1 class="text-center text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
       <p class="text-center text-sm text-gray-500 dark:text-gray-400">Inicia sesión para continuar</p>
     </div>
 
     <app-input
-      formControlName="email"
+      [formField]="form.email"
       label="Email"
       type="email"
       placeholder="tu@email.com"
-      [error]="form.controls.email.touched && form.controls.email.invalid ? 'Email válido requerido' : ''"
+      [error]="emailError()"
     />
 
     <app-input
-      formControlName="password"
+      [formField]="form.password"
       label="Contraseña"
       type="password"
       placeholder="••••••••"
-      [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 8 caracteres' : ''"
+      [error]="passwordError()"
     />
 
     <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -31,7 +31,7 @@
       Mantener sesión iniciada
     </label>
 
-    <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form.invalid || loading()" [loading]="loading()">
+    <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form().invalid() || loading()" [loading]="loading()">
       Ingresar
     </app-button>
 
