@@ -21,8 +21,9 @@ export class BillingService {
     return this.http.delete<void>(`${this.api}/prices/${id}`);
   }
 
-  invoices(page = 0, size = 20) {
-    const params = new HttpParams().set('page', page).set('size', size);
+  invoices(page = 0, size = 20, q?: string) {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (q) params = params.set('q', q);
     return this.http.get<Page<InvoiceResponse>>(`${this.api}/invoices`, { params });
   }
 

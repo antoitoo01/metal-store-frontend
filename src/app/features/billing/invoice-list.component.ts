@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
@@ -27,7 +27,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar facturas' : undefined" [empty]="query.data()?.content?.length === 0">
         <app-table [columns]="['Número', 'Cliente', 'Fecha', 'Vencimiento', 'Total', 'Estado', '']">
-          @for (inv of filtered(); track inv.id) {
+          @for (inv of query.data()?.content ?? []; track inv.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ inv.invoiceNumber }}</td>
               <td class="text-gray-600 dark:text-gray-400">{{ inv.customerName ?? '—' }}</td>
@@ -48,7 +48,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
           <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
         </div>
         @if (q() && query.data()) {
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ filtered().length }} de {{ query.data()!.totalElements }} facturas</p>
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ query.data()!.totalElements }} resultados</p>
         }
       </app-data-state>
     </div>
@@ -62,23 +62,13 @@ export class InvoiceListComponent {
   readonly size = 20;
 
   readonly query = injectQuery<Page<InvoiceResponse>>(() => ({
-    queryKey: ['invoices', { page: this.page() }],
-    queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size)),
+    queryKey: ['invoices', { page: this.page(), q: this.q() }],
+    queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size, this.q() || undefined)),
   }));
-
-  readonly filtered = computed(() => {
-    const data = this.query.data()?.content ?? [];
-    const term = this.q().toLowerCase();
-    if (!term) return data;
-    return data.filter(
-      (inv) =>
-        inv.invoiceNumber.toLowerCase().includes(term) ||
-        (inv.customerName ?? '').toLowerCase().includes(term),
-    );
-  });
 
   search(term: string) {
     this.q.set(term);
+    this.page.set(0);
   }
 
   goTo(p: number) {
