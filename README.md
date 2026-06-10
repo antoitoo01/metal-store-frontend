@@ -1,59 +1,87 @@
-# MetalStoreFrontend
+# MetalStore Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.0.
+> Aplicación de gestión empresarial para metalistería — control de stock, presupuestos, facturación y catálogo técnico de perfiles metálicos.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+| Tecnología | Versión |
+|-----------|---------|
+| Angular | 22 (standalone, zoneless, Signals) |
+| TypeScript | 6.0 |
+| Tailwind CSS | 4.3 |
+| TanStack Query | Angular 5.101 |
+| Bun | 1.3 |
+| Vitest | 4.0 |
 
-```bash
-ng serve
+## Arquitectura
+
+```
+src/
+├── app/
+│   ├── core/           # Servicios, guards, interceptors, modelos
+│   ├── features/       # Módulos de negocio (auth, clients, catalog, ...)
+│   ├── layout/         # Shell de la app (sidebar, topbar, breadcrumb)
+│   └── shared/         # Componentes reutilizables
+├── environments/       # Config por entorno
+└── styles.css          # Tailwind entrypoint
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Módulos funcionales
 
-## Code scaffolding
+| Módulo | Descripción |
+|--------|-------------|
+| Auth | Login/registro, JWT, multi-tenancy |
+| Clients | CRUD de clientes con activación/desactivación |
+| Catalog | Perfiles estructurales, familias, ítems, tipos, imágenes |
+| Inventory | Control de stock con trazabilidad |
+| Quotes | Presupuestos con máquina de estados (DRAFT → ISSUED → ACCEPTED/REJECTED) |
+| Billing | Facturación y precios con gestión de estados |
+| Users | Administración de usuarios del tenant |
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Requisitos
 
-```bash
-ng generate component component-name
-```
+- [Bun](https://bun.sh) 1.3+
+- Backend corriendo en `http://localhost:8080`
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Desarrollo
 
 ```bash
-ng test
+# Instalar dependencias
+bun install
+
+# Iniciar servidor de desarrollo (http://localhost:4200)
+bun start
+
+# Ejecutar tests
+bun test
+
+# Linter
+bun run lint
 ```
 
-## Running end-to-end tests
+## Backend
 
-For end-to-end (e2e) testing, run:
+El frontend se conecta al backend [`metal-store`](https://github.com/anomalyco/metal-store) (Spring Boot 4, Kotlin, PostgreSQL/H2).
+
+Endpoints principales en `http://localhost:8080`:
+- API REST: `/api/*`
+- Documentación Swagger: `/swagger-ui/index.html`
+
+> El perfil `dev` del backend usa H2 en memoria y `permitAll` para seguridad — ideal para desarrollo local sin necesidad de JWT.
+
+## Variables de entorno
+
+| Variable | Descripción | Defecto |
+|----------|-------------|---------|
+| `API_URL` | URL base del backend | `/api` |
+
+## Build
 
 ```bash
-ng e2e
+bun run build        # Producción en dist/
+bun run watch        # Dev con watch
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Licencia
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Uso interno.
