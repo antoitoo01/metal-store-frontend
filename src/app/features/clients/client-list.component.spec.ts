@@ -1,8 +1,10 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
+import { of } from 'rxjs';
 import { ClientListComponent } from './client-list.component';
 import { ClientService } from './client.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { mockClient, mockPage } from '../testing/mock-factories';
 
 describe('ClientListComponent', () => {
@@ -20,6 +22,20 @@ describe('ClientListComponent', () => {
 
     fixture = TestBed.createComponent(ClientListComponent);
     fixture.detectChanges();
+  });
+
+  it('shows success toast on delete', async () => {
+    const notificationSpy = vi.spyOn(NotificationService.prototype, 'success');
+    const clientService = TestBed.inject(ClientService);
+    vi.spyOn(clientService, 'remove').mockReturnValue(of(undefined));
+
+    fixture.componentRef.instance.confirmDelete({ id: 'test-id', name: 'Test' } as any);
+    fixture.detectChanges();
+    fixture.componentRef.instance.executeDelete();
+
+    await vi.waitFor(() => {
+      expect(notificationSpy).toHaveBeenCalledWith('Cliente eliminado correctamente');
+    });
   });
 
   it('renders client list with names', () => {

@@ -3,11 +3,12 @@ import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { CatalogService } from './catalog.service';
+import { ColumnDef } from '../../shared/components/table/column-def.type';
 import { CatalogProfile, Page } from '../../core/models/api.types';
-import { PaginationComponent } from '../../shared/components/pagination.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
-import { SearchInputComponent } from '../../shared/components/search-input.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
+import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
 
 @Component({
   selector: 'app-catalog-profiles',
@@ -24,7 +25,7 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
       </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar perfiles' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Designación', 'Familia', 'Norma', 'Peso (kg/m)', 'Área (cm²)', '']">
+        <app-table [columns]="columnDefs">
           @for (p of query.data()?.content; track p.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ p.designation }}</td>
@@ -45,6 +46,15 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
   `,
 })
 export class CatalogProfilesComponent {
+  readonly columnDefs: ColumnDef[] = [
+    { key: 'designation', label: 'Designación' },
+    { key: 'family', label: 'Familia' },
+    { key: 'standard', label: 'Norma' },
+    { key: 'weightKgM', label: 'Peso (kg/m)' },
+    { key: 'areaCm2', label: 'Área (cm²)' },
+    { key: 'actions', label: '' },
+  ];
+
   private readonly catalog = inject(CatalogService);
 
   readonly q = signal('');

@@ -1,5 +1,5 @@
 import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
-import { NotificationService, NotificationType, ToastPosition } from '../../core/services/notification.service';
+import { NotificationService, NotificationType, ToastPosition } from '../../../core/services/notification.service';
 
 const PRIORITY_ORDER: Record<string, number> = { critical: 0, high: 1, normal: 2, low: 3 };
 

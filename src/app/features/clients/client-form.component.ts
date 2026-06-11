@@ -1,4 +1,4 @@
-import { Component, inject, effect, computed } from '@angular/core';
+import { Component, inject, effect, computed, afterNextRender } from '@angular/core';
 import { signal } from '@angular/core';
 import { form, FormField, required, email } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
@@ -6,8 +6,9 @@ import { injectQuery, injectMutation } from '@tanstack/angular-query-experimenta
 import { Router, ActivatedRoute } from '@angular/router';
 import { ClientService } from './client.service';
 import { CreateClientRequest, ClientResponse } from '../../core/models/api.types';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { BackLinkComponent } from '../../shared/components/back-link.component';
+import { NotificationService } from '../../core/services/notification.service';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
 
 interface ClientFormData {
   name: string;
@@ -27,6 +28,7 @@ export class ClientFormComponent {
   private readonly clientService = inject(ClientService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly notification = inject(NotificationService);
 
   readonly id = this.route.snapshot.params['id'] as string | undefined;
   readonly isEdit = !!this.id;
@@ -65,10 +67,14 @@ export class ClientFormComponent {
 
   readonly saveMutation = injectMutation<ClientResponse, Error, CreateClientRequest>(() => ({
     mutationFn: (body) => firstValueFrom(this.isEdit ? this.clientService.update(this.id!, body) : this.clientService.create(body)),
-    onSuccess: () => this.router.navigate(['/clients']),
+    onSuccess: () => {
+      this.notification.success(this.isEdit ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente');
+      this.router.navigate(['/clients']);
+    },
   }));
 
   constructor() {
+    afterNextRender(() => document.getElementById('name')?.focus());
     if (this.isEdit) {
       effect(() => {
         const data = this.existing.data();

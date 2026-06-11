@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { BadgeComponent, BadgeVariant } from './badge.component';
+import { BadgeComponent, BadgeVariant } from '../badge/badge.component';
 
 export function statusToBadgeVariant(status: string): BadgeVariant {
   switch (status) {

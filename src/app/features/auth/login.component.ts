@@ -2,8 +2,8 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { form, FormField, required } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { InputComponent } from '../../shared/components/input.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { InputComponent } from '../../shared/components/input/input.component';
 
 interface LoginFormData {
   email: string;
@@ -21,6 +21,7 @@ export class LoginComponent {
 
   readonly loading = signal(false);
   readonly rememberMe = signal(false);
+  readonly error = signal<string | null>(null);
 
   readonly model = signal<LoginFormData>({ email: '', password: '' });
 
@@ -45,9 +46,13 @@ export class LoginComponent {
     if (this.form().invalid()) return;
 
     this.loading.set(true);
+    this.error.set(null);
     this.auth.login(this.model(), this.rememberMe()).subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: () => this.loading.set(false),
+      error: (err) => {
+        this.error.set(err?.error?.message ?? 'Credenciales inválidas');
+        this.loading.set(false);
+      },
     });
   }
 }

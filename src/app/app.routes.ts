@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { MainLayoutComponent } from './layout/main-layout.component';
+import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login.component').then((c) => c.LoginComponent) },
@@ -20,8 +20,9 @@ export const routes: Routes = [
         children: [
           { path: '', loadComponent: () => import('./features/clients/client-list.component').then((c) => c.ClientListComponent) },
           { path: 'new', loadComponent: () => import('./features/clients/client-form.component').then((c) => c.ClientFormComponent) },
-          { path: ':id', loadComponent: () => import('./features/clients/client-form.component').then((c) => c.ClientFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/clients/client-detail.component').then((c) => c.ClientDetailComponent) },
           { path: ':id/edit', loadComponent: () => import('./features/clients/client-form.component').then((c) => c.ClientFormComponent) },
+          { path: ':id/detail', redirectTo: ':id' },
         ],
       },
       {
@@ -58,6 +59,7 @@ export const routes: Routes = [
           { path: '', loadComponent: () => import('./features/quotes/quote-list.component').then((c) => c.QuoteListComponent) },
           { path: 'new', loadComponent: () => import('./features/quotes/quote-form.component').then((c) => c.QuoteFormComponent) },
           { path: ':id', loadComponent: () => import('./features/quotes/quote-detail.component').then((c) => c.QuoteDetailComponent) },
+          { path: ':id/edit', loadComponent: () => import('./features/quotes/quote-form.component').then((c) => c.QuoteFormComponent) },
         ],
       },
       {
@@ -68,6 +70,7 @@ export const routes: Routes = [
           { path: 'invoices', loadComponent: () => import('./features/billing/invoice-list.component').then((c) => c.InvoiceListComponent) },
           { path: 'invoices/new', loadComponent: () => import('./features/billing/invoice-form.component').then((c) => c.InvoiceFormComponent) },
           { path: 'invoices/:id', loadComponent: () => import('./features/billing/invoice-detail.component').then((c) => c.InvoiceDetailComponent) },
+          { path: 'invoices/:id/edit', loadComponent: () => import('./features/billing/invoice-form.component').then((c) => c.InvoiceFormComponent) },
           { path: 'prices', loadComponent: () => import('./features/billing/price-list.component').then((c) => c.PriceListComponent) },
         ],
       },

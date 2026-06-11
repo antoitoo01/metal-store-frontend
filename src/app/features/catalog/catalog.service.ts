@@ -64,6 +64,18 @@ export class CatalogService {
     return this.http.delete<void>(`${this.api}/item-types/${id}`);
   }
 
+  searchProfiles(q: string, limit = 10) {
+    return this.http.get<Page<CatalogProfile>>(`${this.api}/profiles`, {
+      params: new HttpParams().set('q', q).set('page', 0).set('size', limit),
+    });
+  }
+
+  searchItems(q: string, limit = 10) {
+    return this.http.get<Page<CatalogItem>>(`${this.api}/items`, {
+      params: new HttpParams().set('q', q).set('page', 0).set('size', limit),
+    });
+  }
+
   uploadProfileImage(id: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);

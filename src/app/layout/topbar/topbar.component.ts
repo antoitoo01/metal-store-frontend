@@ -1,13 +1,21 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../core/services/auth.service';
-import { ThemeService } from '../core/services/theme.service';
+import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-topbar',
   template: `
     <header class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 dark:border-gray-700 dark:bg-slate-900">
-      <div>
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          (click)="toggleMenu.emit()"
+          class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+          aria-label="Abrir menú"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
         <ng-content select="[breadcrumbs]" />
       </div>
       <div class="flex items-center gap-4">
@@ -38,6 +46,8 @@ export class TopbarComponent {
   protected readonly authService = inject(AuthService);
   protected readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
+
+  readonly toggleMenu = output<void>();
 
   protected logout(): void {
     this.authService.logout().subscribe({

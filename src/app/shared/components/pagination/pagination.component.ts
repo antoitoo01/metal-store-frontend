@@ -4,17 +4,19 @@ import { Component, input, output } from '@angular/core';
   selector: 'app-pagination',
   template: `
     @if (totalPages() > 1) {
-      <div class="flex items-center gap-1 text-sm">
+      <nav aria-label="Navegación de páginas" class="flex items-center gap-1 text-sm">
         <button
           [disabled]="currentPage() === 0"
           (click)="goTo(0)"
-          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed">
+          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Primera página">
           «
         </button>
         <button
           [disabled]="currentPage() === 0"
           (click)="goTo(currentPage() - 1)"
-          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed">
+          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Página anterior">
           ‹
         </button>
         <span class="px-2 text-gray-600 dark:text-gray-400">
@@ -23,16 +25,18 @@ import { Component, input, output } from '@angular/core';
         <button
           [disabled]="currentPage() >= totalPages() - 1"
           (click)="goTo(currentPage() + 1)"
-          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed">
+          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Página siguiente">
           ›
         </button>
         <button
           [disabled]="currentPage() >= totalPages() - 1"
           (click)="goTo(totalPages() - 1)"
-          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed">
+          class="rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Última página">
           »
         </button>
-      </div>
+      </nav>
     }
   `,
 })

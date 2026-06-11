@@ -2,8 +2,9 @@ import { Component, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { CatalogService } from './catalog.service';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
+import { ColumnDef } from '../../shared/components/table/column-def.type';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
 
 @Component({
   selector: 'app-catalog-families',
@@ -16,7 +17,7 @@ import { TableComponent } from '../../shared/components/table.component';
       </select>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar familias' : undefined" [empty]="query.data()?.length === 0">
-        <app-table [columns]="['Código', 'Nombre', 'Norma', 'Tipo']">
+        <app-table [columns]="columnDefs">
           @for (f of query.data(); track f.id) {
             <tr>
               <td class="font-semibold text-gray-900 dark:text-white">{{ f.code }}</td>
@@ -31,6 +32,13 @@ import { TableComponent } from '../../shared/components/table.component';
   `,
 })
 export class CatalogFamiliesComponent {
+  readonly columnDefs: ColumnDef[] = [
+    { key: 'code', label: 'Código' },
+    { key: 'name', label: 'Nombre' },
+    { key: 'standard', label: 'Norma' },
+    { key: 'shapeType', label: 'Tipo' },
+  ];
+
   private readonly catalog = inject(CatalogService);
 
   readonly standard = signal('EUR');

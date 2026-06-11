@@ -1,14 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { UserService } from './user.service';
 import { UserResponse, Page } from '../../core/models/api.types';
-import { PaginationComponent } from '../../shared/components/pagination.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
-import { SearchInputComponent } from '../../shared/components/search-input.component';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
+import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
 
 @Component({
@@ -25,7 +26,7 @@ import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/ser
       </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar usuarios' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Usuario', 'Email', 'Rol', '']">
+        <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (u of query.data()?.content; track u.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ u.username }}</td>
@@ -58,9 +59,21 @@ export class UserListComponent {
   readonly page = signal(0);
   readonly searchQuery = signal('');
 
+  readonly sortBy = signal('');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
+
+  protected readonly columnDefs: ColumnDef[] = [
+    { key: 'username', label: 'Usuario', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'role', label: 'Rol', sortable: true },
+    { key: '', label: '' },
+  ];
+
+  private readonly sortParam = computed(() => this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined);
+
   readonly query = injectQuery<Page<UserResponse>>(() => ({
-    queryKey: ['users', { page: this.page(), q: this.searchQuery() }],
-    queryFn: () => firstValueFrom(this.userService.list({ page: this.page(), q: this.searchQuery() })),
+    queryKey: ['users', { page: this.page(), q: this.searchQuery(), sort: this.sortParam() }],
+    queryFn: () => firstValueFrom(this.userService.list({ page: this.page(), q: this.searchQuery(), sort: this.sortParam() })),
   }));
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<UserResponse> | undefined>(() => ({
@@ -69,6 +82,12 @@ export class UserListComponent {
     onError: (_err, _id, context) => { if (context) rollbackPage(this.queryClient, ['users'], context); },
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['users'] }),
   }));
+
+  onSortChange(sort: SortChange): void {
+    this.sortBy.set(sort.column);
+    this.sortDir.set(sort.direction);
+    this.page.set(0);
+  }
 
   readonly showDeleteDialog = signal(false);
   readonly deleteTarget = signal<UserResponse | null>(null);

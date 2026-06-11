@@ -1,9 +1,10 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { TableComponent } from './table.component';
+import { ColumnDef } from './column-def.type';
 
 @Component({
-  template: `<app-table [columns]="columns">
+  template: `<app-table [columns]="columnDefs">
     @for (item of items; track item) {
       <tr><td>{{ item.name }}</td><td>{{ item.role }}</td></tr>
     }
@@ -11,7 +12,10 @@ import { TableComponent } from './table.component';
   imports: [TableComponent],
 })
 class TestHost {
-  columns = ['Nombre', 'Rol'];
+  columnDefs: ColumnDef[] = [
+    { key: 'name', label: 'Nombre' },
+    { key: 'role', label: 'Rol' },
+  ];
   items = [
     { name: 'Alice', role: 'Admin' },
     { name: 'Bob', role: 'User' },

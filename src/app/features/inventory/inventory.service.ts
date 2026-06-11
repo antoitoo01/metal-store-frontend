@@ -8,9 +8,10 @@ export class InventoryService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/inventory`;
 
-  list(page = 0, size = 20, q?: string) {
+  list(page = 0, size = 20, q?: string, sort?: string) {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<Page<InventoryItemResponse>>(this.apiUrl, { params });
   }
 

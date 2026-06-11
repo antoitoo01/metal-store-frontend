@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ToastComponent } from './toast.component';
-import { NotificationService } from '../../core/services/notification.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 describe('ToastComponent', () => {
   let component: ToastComponent;

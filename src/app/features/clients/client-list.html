@@ -6,18 +6,29 @@
     </a>
   </div>
 
-  <div class="mt-4">
+  <div class="mt-4 flex flex-wrap items-center gap-3">
     <app-search-input placeholder="Buscar por nombre…" (searchChange)="search($event)" />
+    <div class="flex items-center gap-2">
+      <label class="text-sm text-gray-600 dark:text-gray-400">Estado:</label>
+      <select
+        (change)="setStatusFilter($any($event.target).value)"
+        class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
+      >
+        <option value="">Todos</option>
+        <option value="ACTIVE">Activo</option>
+        <option value="INACTIVE">Inactivo</option>
+      </select>
+    </div>
   </div>
 
   <app-data-state
     [loading]="query.isLoading()"
     [error]="query.isError() ? 'Error al cargar clientes' : undefined"
-    [empty]="(query.data()?.content?.length ?? 0) === 0"
-    emptyMessage="No hay clientes todavía."
+    [empty]="filteredClients().length === 0"
+    emptyMessage="No hay clientes que coincidan con los filtros."
   >
-    <app-table [columns]="['Nombre', 'Email', 'CIF/NIF', 'Estado', '']">
-      @for (client of query.data()?.content; track client.id) {
+    <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
+      @for (client of filteredClients(); track client.id) {
         <tr>
           <td class="font-medium text-gray-900 dark:text-white">
             <a [routerLink]="['/clients', client.id]" class="hover:text-blue-600 dark:hover:text-blue-400">{{ client.name }}</a>
@@ -28,11 +39,14 @@
             <app-status-badge [status]="client.status" [label]="client.status === 'ACTIVE' ? 'Activo' : 'Inactivo'" />
           </td>
           <td class="text-right">
-            @if (client.status === 'ACTIVE') {
-              <app-button variant="ghost" size="sm" (clicked)="deactivateMutation.mutate(client.id)">Desactivar</app-button>
-            } @else {
-              <app-button variant="ghost" size="sm" (clicked)="activateMutation.mutate(client.id)">Activar</app-button>
-            }
+            <div class="flex items-center justify-end gap-1">
+              @if (client.status === 'ACTIVE') {
+                <app-button variant="ghost" size="sm" (clicked)="deactivateMutation.mutate(client.id)">Desactivar</app-button>
+              } @else {
+                <app-button variant="ghost" size="sm" (clicked)="activateMutation.mutate(client.id)">Activar</app-button>
+              }
+              <app-button variant="ghost" size="sm" (clicked)="confirmDelete(client)">Eliminar</app-button>
+            </div>
           </td>
         </tr>
       }
@@ -42,4 +56,12 @@
       <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
     </div>
   </app-data-state>
+
+  <app-confirm-dialog
+    [visible]="showDeleteDialog()"
+    title="Eliminar cliente"
+    [message]="'¿Estás seguro de que querés eliminar a ' + (deleteTarget?.name ?? '') + '? Esta acción no se puede deshacer.'"
+    variant="danger"
+    (confirmed)="executeDelete()"
+    (cancelled)="showDeleteDialog.set(false)" />
 </div>

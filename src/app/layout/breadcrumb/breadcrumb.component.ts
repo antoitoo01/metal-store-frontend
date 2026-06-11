@@ -31,8 +31,8 @@ const BREADCRUMB_MAP: Record<string, string> = {
   selector: 'app-breadcrumb',
   imports: [RouterLink],
   template: `
-    <nav class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-      <a routerLink="/dashboard" class="hover:text-gray-700 dark:hover:text-gray-200">Inicio</a>
+    <nav aria-label="Breadcrumb" class="flex items-center gap-1 overflow-hidden text-sm text-gray-500 dark:text-gray-400">
+      <a routerLink="/dashboard" class="shrink-0 hover:text-gray-700 dark:hover:text-gray-200">Inicio</a>
       @for (crumb of breadcrumbs(); track crumb.url; let last = $last) {
         <span class="mx-1">/</span>
         @if (last) {

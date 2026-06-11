@@ -8,9 +8,10 @@ export class ClientService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/clients`;
 
-  list(page = 0, size = 20, q?: string) {
+  list(page = 0, size = 20, q?: string, sort?: string) {
     const params = new URLSearchParams({ page: String(page), size: String(size) });
     if (q) params.set('q', q);
+    if (sort) params.set('sort', sort);
     return this.http.get<Page<ClientResponse>>(`${this.apiUrl}?${params}`);
   }
 

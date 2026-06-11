@@ -3,12 +3,14 @@ import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { form, FormField } from '@angular/forms/signals';
 import { CatalogService } from './catalog.service';
+import { ColumnDef } from '../../shared/components/table/column-def.type';
 import { TypeResponse, Page } from '../../core/models/api.types';
+import { NotificationService } from '../../core/services/notification.service';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-catalog-item-types',
@@ -27,10 +29,14 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
       </form>
 
       <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Nombre', 'Acciones']">
+        <app-table [columns]="columnDefs">
           @for (t of query.data()?.content; track t.id) {
             <tr>
-              <td class="text-gray-900 dark:text-white">{{ t.name }}</td>
+              <td>
+                <button (click)="editType(t)" class="text-left text-gray-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-400 underline decoration-dotted underline-offset-2">
+                  {{ t.name }}
+                </button>
+              </td>
               <td>
                 <app-button variant="ghost" size="sm" (clicked)="confirmDelete(t.id)" [disabled]="deleteMutation.isPending()">Eliminar</app-button>
               </td>
@@ -38,6 +44,26 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
           }
         </app-table>
       </app-data-state>
+
+      @if (showEditDialog()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" (click)="closeEdit()">
+          <div class="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800" (click)="$event.stopPropagation()">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Editar tipo</h3>
+            <div class="mt-4">
+              <input
+                [formField]="editForm.name"
+                class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600"
+              />
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+              <app-button variant="ghost" (clicked)="closeEdit()">Cancelar</app-button>
+              <app-button (clicked)="saveEdit()" [disabled]="!editModel().name.trim() || updateMutation.isPending()">
+                {{ updateMutation.isPending() ? '…' : 'Guardar' }}
+              </app-button>
+            </div>
+          </div>
+        </div>
+      }
 
       <app-confirm-dialog
         [visible]="showDeleteDialog()"
@@ -50,7 +76,13 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
   `,
 })
 export class CatalogItemTypesComponent {
+  readonly columnDefs: ColumnDef[] = [
+    { key: 'name', label: 'Nombre' },
+    { key: 'actions', label: 'Acciones' },
+  ];
+
   private readonly catalog = inject(CatalogService);
+  private readonly notification = inject(NotificationService);
   private readonly queryClient = inject(QueryClient);
 
   readonly model = signal({ newName: '' });
@@ -63,6 +95,7 @@ export class CatalogItemTypesComponent {
 
   readonly createMutation = injectMutation<TypeResponse, Error, string>(() => ({
     mutationFn: (name) => firstValueFrom(this.catalog.createItemType({ name })),
+    onSuccess: () => this.notification.success('Tipo creado correctamente'),
     onSettled: () => { this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }); this.model.set({ newName: '' }); },
   }));
 
@@ -70,13 +103,45 @@ export class CatalogItemTypesComponent {
     mutationFn: (id) => firstValueFrom(this.catalog.deleteItemType(id)),
     onMutate: (id) => optimisticRemoveFromPage<TypeResponse>(this.queryClient, ['catalog-item-types'], id),
     onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, ['catalog-item-types'], context); },
+    onSuccess: () => this.notification.success('Tipo eliminado correctamente'),
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] }),
+  }));
+
+  readonly updateMutation = injectMutation<TypeResponse, Error, { id: string; name: string }>(() => ({
+    mutationFn: ({ id, name }) => firstValueFrom(this.catalog.updateItemType(id, { name })),
+    onSuccess: () => this.notification.success('Tipo actualizado correctamente'),
+    onSettled: () => {
+      this.queryClient.invalidateQueries({ queryKey: ['catalog-item-types'] });
+      this.closeEdit();
+    },
   }));
 
   createType() {
     const name = this.model().newName.trim();
     if (!name) return;
     this.createMutation.mutate(name);
+  }
+
+  readonly showEditDialog = signal(false);
+  readonly editModel = signal({ name: '' });
+  readonly editForm = form(this.editModel);
+  private editTarget = '';
+
+  editType(t: TypeResponse) {
+    this.editTarget = t.id;
+    this.editModel.set({ name: t.name });
+    this.showEditDialog.set(true);
+  }
+
+  closeEdit() {
+    this.showEditDialog.set(false);
+    this.editTarget = '';
+  }
+
+  saveEdit() {
+    const name = this.editModel().name.trim();
+    if (!name || !this.editTarget) return;
+    this.updateMutation.mutate({ id: this.editTarget, name });
   }
 
   readonly showDeleteDialog = signal(false);

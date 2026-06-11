@@ -1,15 +1,15 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, effect, computed } from '@angular/core';
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, required } from '@angular/forms/signals';
 import { injectQuery, injectMutation } from '@tanstack/angular-query-experimental';
 import { Router, ActivatedRoute } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryItemRequest, InventoryItemResponse } from '../../core/models/api.types';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { InputComponent } from '../../shared/components/input.component';
-import { BackLinkComponent } from '../../shared/components/back-link.component';
-import { CardComponent } from '../../shared/components/card.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { InputComponent } from '../../shared/components/input/input.component';
+import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
+import { CardComponent } from '../../shared/components/card/card.component';
 
 interface InventoryFormData {
   quantity: number;
@@ -31,7 +31,7 @@ interface InventoryFormData {
       <h1 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ isEdit ? 'Editar' : 'Nuevo' }} registro de inventario</h1>
 
       <form (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
-        <app-input [formField]="form.quantity" label="Cantidad *" type="number" />
+        <app-input [formField]="form.quantity" label="Cantidad *" type="number" [error]="quantityError()" />
         <app-input [formField]="form.location" label="Ubicación" />
 
         <app-card>
@@ -62,7 +62,7 @@ export class InventoryFormComponent {
   readonly isEdit = !!this.id;
 
   readonly model = signal<InventoryFormData>({
-    quantity: 0,
+    quantity: 1,
     location: '',
     profileId: '',
     itemId: '',
@@ -71,7 +71,15 @@ export class InventoryFormComponent {
     notes: '',
   });
 
-  readonly form = form(this.model);
+  readonly form = form(this.model, (f) => {
+    required(f.quantity, { message: 'La cantidad es obligatoria' });
+  });
+
+  readonly quantityError = computed(() => {
+    const field = this.form.quantity();
+    if (!field.touched()) return undefined;
+    return field.errors()[0]?.message;
+  });
 
   readonly existing = injectQuery<InventoryItemResponse>(() => ({
     queryKey: ['inventory-item', this.id!],

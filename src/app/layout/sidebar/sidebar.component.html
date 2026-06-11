@@ -1,0 +1,67 @@
+<aside
+  class="fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r border-gray-200 bg-white transition-all duration-300 ease-in-out dark:border-gray-700 dark:bg-slate-900 lg:relative lg:translate-x-0"
+  [class.w-48]="!collapsed()"
+  [class.w-20]="collapsed()"
+  [class.translate-x-0]="mobileOpen()"
+  [class.-translate-x-full]="!mobileOpen()"
+>
+  <button
+    type="button"
+    (click)="toggle()"
+    class="absolute -right-3 top-4.5 z-10 hidden h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white shadow-md transition hover:scale-105 dark:border-gray-700 dark:bg-slate-800 dark:text-white lg:flex"
+    [attr.aria-label]="collapsed() ? 'Expandir menú lateral' : 'Colapsar menú lateral'"
+  >
+    <app-icon
+      [name]="collapsed() ? 'panel-left-open' : 'panel-left-close'"
+      class="text-gray-100 dark:text-gray-500"
+    />
+  </button>
+
+  <div
+    class="flex h-16 items-center border-b border-gray-100 px-6 dark:border-gray-700"
+  >
+    @if (!logoError()) {
+      <img
+        src="assets/logo.png"
+        alt="MetalStore"
+        class="h-10 w-10 object-contain "
+        (error)="logoError.set(true)"
+      />
+    } @else {
+      <app-icon name="anvil"
+      class="mr-2 text-gray-700 dark:text-gray-300"/>
+    }
+    <span
+      class="overflow-hidden whitespace-nowrap text-lg font-bold text-gray-900 transition-all duration-300 dark:text-white"
+      [class.w-48]="!collapsed()"
+      [class.w-0]="collapsed()"
+      [class.opacity-0]="collapsed()"
+    >
+      MetalStore
+    </span>
+  </div>
+
+  <nav aria-label="Navegación principal" class="flex-1 space-y-1 px-3 py-4">
+    @for (item of items; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        (click)="onNavClick()"
+      >
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+          <app-icon [name]="item.icon" />
+        </span>
+
+        <span
+          class="overflow-hidden whitespace-nowrap transition-all duration-300"
+          [class.w-0]="collapsed()"
+          [class.opacity-0]="collapsed()"
+          [class.w-auto]="!collapsed()"
+        >
+          {{ item.label }}
+        </span>
+      </a>
+    }
+  </nav>
+</aside>

@@ -5,13 +5,15 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { RouterLink } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { InventoryItemResponse, Page } from '../../core/models/api.types';
+import { NotificationService } from '../../core/services/notification.service';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { PaginationComponent } from '../../shared/components/pagination.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
-import { SearchInputComponent } from '../../shared/components/search-input.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
+import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
 
 @Component({
   selector: 'app-inventory-list',
@@ -27,7 +29,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
       <app-search-input placeholder="Buscar…" (searchChange)="search($event)" />
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar inventario' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Cantidad', 'Ubicación', 'Proveedor', 'Coste (€)', 'Recibido', 'Notas', '']">
+        <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (item of query.data()?.content; track item.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ item.quantity }}</td>
@@ -63,25 +65,46 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.c
 })
 export class InventoryListComponent {
   private readonly inventory = inject(InventoryService);
+  private readonly notification = inject(NotificationService);
   private readonly queryClient = inject(QueryClient);
 
   readonly q = signal('');
   readonly page = signal(0);
   readonly size = 20;
 
-  readonly queryKey = computed(() => ['inventory', { page: this.page(), size: this.size, q: this.q() }] as unknown[]);
+  readonly sortBy = signal('');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
+
+  protected readonly columnDefs: ColumnDef[] = [
+    { key: 'quantity', label: 'Cantidad', sortable: true },
+    { key: 'location', label: 'Ubicación', sortable: true },
+    { key: 'supplier', label: 'Proveedor', sortable: true },
+    { key: 'costPriceEur', label: 'Coste (€)', sortable: true },
+    { key: 'receivedAt', label: 'Recibido', sortable: true },
+    { key: 'notes', label: 'Notas' },
+    { key: '', label: '' },
+  ];
+
+  readonly queryKey = computed(() => ['inventory', { page: this.page(), size: this.size, q: this.q(), sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }] as unknown[]);
 
   readonly query = injectQuery<Page<InventoryItemResponse>>(() => ({
     queryKey: this.queryKey(),
-    queryFn: () => firstValueFrom(this.inventory.list(this.page(), this.size, this.q() || undefined)),
+    queryFn: () => firstValueFrom(this.inventory.list(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<InventoryItemResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.inventory.remove(id)),
     onMutate: (id) => optimisticRemoveFromPage<InventoryItemResponse>(this.queryClient, this.queryKey(), id),
     onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSuccess: () => this.notification.success('Item eliminado del inventario correctamente'),
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['inventory'] }),
   }));
+
+  onSortChange(sort: SortChange): void {
+    this.sortBy.set(sort.column);
+    this.sortDir.set(sort.direction);
+    this.page.set(0);
+  }
 
   readonly showDeleteDialog = signal(false);
   private deleteTarget = '';

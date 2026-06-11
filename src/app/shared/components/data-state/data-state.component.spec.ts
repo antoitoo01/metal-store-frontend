@@ -96,4 +96,26 @@ describe('DataStateComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Error real');
     expect(fixture.nativeElement.textContent).not.toContain('No hay datos');
   });
+
+  it('renders skeleton component when skeleton mode is on and loading', () => {
+    fixture.componentRef.setInput('skeleton', true);
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    const skeleton = fixture.nativeElement.querySelector('app-skeleton');
+    expect(skeleton).toBeTruthy();
+    expect(fixture.nativeElement.textContent).not.toContain('Cargando…');
+  });
+
+  it('hides skeleton when loading completes', () => {
+    fixture.componentRef.setInput('skeleton', true);
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-skeleton')).toBeTruthy();
+
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('empty', false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-skeleton')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('[data-testid="data-state-content"]')).toBeTruthy();
+  });
 });

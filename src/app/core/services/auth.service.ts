@@ -39,6 +39,10 @@ export class AuthService {
 
   async initialize(): Promise<void> {
     if (this.#restoreFromStorage()) return;
+
+    const fallbackTenantId = crypto.randomUUID();
+    this.#tenantId = fallbackTenantId;
+
     try {
       const user = await firstValueFrom(
         this.http.get<UserResponse>(`${this.apiUrl}/me`, {
@@ -47,7 +51,7 @@ export class AuthService {
       );
       this.#applyUser(user);
     } catch {
-      // Sin sesión — el guard redirige a /login
+      this.#tenantId = null;
     }
   }
 

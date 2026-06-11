@@ -8,9 +8,11 @@ export class QuoteService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/quotes`;
 
-  list(page = 0, size = 20, q?: string) {
+  list(page = 0, size = 20, q?: string, clientId?: string, sort?: string) {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
+    if (clientId) params = params.set('clientId', clientId);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<Page<QuoteResponse>>(this.apiUrl, { params });
   }
 
@@ -20,6 +22,10 @@ export class QuoteService {
 
   create(body: CreateQuoteRequest) {
     return this.http.post<QuoteResponse>(this.apiUrl, body);
+  }
+
+  update(id: string, body: Partial<{ customerName: string | null; customerVat: string | null; customerAddress: string | null; validUntil: string | null; notes: string | null }>) {
+    return this.http.put<QuoteResponse>(`${this.apiUrl}/${id}`, body);
   }
 
   getLines(id: string) {

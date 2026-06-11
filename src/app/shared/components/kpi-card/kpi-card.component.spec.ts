@@ -49,4 +49,24 @@ describe('KpiCardComponent', () => {
     const icon = fixture.nativeElement.querySelector('[data-testid="kpi-icon"]');
     expect(icon).toBeTruthy();
   });
+
+  it('shows skeleton when loading is true', () => {
+    createComponent('Clientes', 42, '/clients');
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    const skeleton = fixture.nativeElement.querySelector('[data-testid="kpi-skeleton"]');
+    expect(skeleton).toBeTruthy();
+    expect(skeleton.classList.contains('animate-pulse')).toBe(true);
+  });
+
+  it('shows value when loading is false', () => {
+    createComponent('Clientes', 42, '/clients');
+    fixture.componentRef.setInput('loading', false);
+    fixture.detectChanges();
+    const skeleton = fixture.nativeElement.querySelector('[data-testid="kpi-skeleton"]');
+    const value = fixture.nativeElement.querySelector('[data-testid="kpi-value"]');
+    expect(skeleton).toBeFalsy();
+    expect(value).toBeTruthy();
+    expect(value.textContent).toContain('42');
+  });
 });

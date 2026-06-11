@@ -7,6 +7,7 @@ export interface UserListParams {
   q?: string;
   page?: number;
   size?: number;
+  sort?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +20,7 @@ export class UserService {
     if (params?.q) httpParams = httpParams.set('q', params.q);
     if (params?.page != null) httpParams = httpParams.set('page', params.page);
     if (params?.size != null) httpParams = httpParams.set('size', params.size);
+    if (params?.sort) httpParams = httpParams.set('sort', params.sort);
     return this.http.get<Page<UserResponse>>(this.api, { params: httpParams });
   }
 

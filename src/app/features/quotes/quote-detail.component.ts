@@ -1,24 +1,27 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { form, FormField } from '@angular/forms/signals';
 import { QuoteService } from './quote.service';
-import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest, QuoteStatus } from '../../core/models/api.types';
-import { ButtonComponent } from '../../shared/components/button.component';
-import { InputComponent } from '../../shared/components/input.component';
-import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
-import { BackLinkComponent } from '../../shared/components/back-link.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
-import { CardComponent } from '../../shared/components/card.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
+import { CatalogService } from '../catalog/catalog.service';
+import { QuoteResponse, QuoteLineResponse, CreateQuoteLineRequest, QuoteStatus, CatalogProfile, Page } from '../../core/models/api.types';
+import { NotificationService } from '../../core/services/notification.service';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { InputComponent } from '../../shared/components/input/input.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
+import { CardComponent } from '../../shared/components/card/card.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { optimisticRemoveFromArray, optimisticAddToArray, rollbackArray } from '../../core/services/optimistic-utils';
 import { PrintService } from '../../core/services/print.service';
+import { ColumnDef } from '../../shared/components/table/column-def.type';
 
 @Component({
   selector: 'app-quote-detail',
-  imports: [FormField, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent],
+  imports: [FormField, ButtonComponent, InputComponent, StatusBadgeComponent, BackLinkComponent, DataStateComponent, TableComponent, CardComponent, ConfirmDialogComponent, RouterLink],
   template: `
     <div class="p-6">
       <app-back-link path="/quotes" label="Volver a presupuestos" />
@@ -37,6 +40,7 @@ import { PrintService } from '../../core/services/print.service';
           <div class="mt-4 flex gap-2">
             @if (q.status === 'DRAFT') {
               <app-button variant="primary" size="sm" (clicked)="transition('issue')" [disabled]="statusMutation.isPending()">Emitir</app-button>
+              <a [routerLink]="['/quotes', q.id, 'edit']" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700">Editar</a>
               <app-button variant="secondary" size="sm" (clicked)="confirmCancel()" [disabled]="statusMutation.isPending()">Cancelar</app-button>
             }
             @if (q.status === 'ISSUED') {
@@ -65,7 +69,7 @@ import { PrintService } from '../../core/services/print.service';
         <h2 class="mt-8 text-lg font-semibold text-gray-900 dark:text-white">Líneas</h2>
 
         <app-data-state [loading]="linesQuery.isPending()" [empty]="false">
-          <app-table [columns]="['#', 'Descripción', 'Cantidad', 'Precio ud.', 'IVA', 'Total', '']">
+          <app-table [columns]="columnDefs">
             @for (line of linesQuery.data(); track line.id) {
               <tr>
                 <td class="text-gray-600 dark:text-gray-400">{{ line.lineNumber }}</td>
@@ -86,7 +90,25 @@ import { PrintService } from '../../core/services/print.service';
               <div body class="space-y-3">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Añadir línea</h3>
 
-                <app-input [formField]="lineForm.description" label="Descripción *" />
+                <div class="relative">
+                  <app-input [formField]="lineForm.description" label="Descripción *" (input)="onDescriptionInput($any($event).target.value)" />
+                  @if (showSearchResults()) {
+                    <div class="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800">
+                      @if (searchProfilesQuery.isPending()) {
+                        <div class="px-3 py-2 text-sm text-gray-500">Buscando…</div>
+                      } @else {
+                        @for (p of searchProfilesQuery.data()?.content ?? []; track p.id) {
+                          <button type="button" (click)="selectProfile(p)" class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                            {{ p.designation }}
+                          </button>
+                        }
+                        @if ((searchProfilesQuery.data()?.content?.length ?? 0) === 0) {
+                          <div class="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
 
                 <div class="grid grid-cols-3 gap-3">
                   <app-input type="number" [formField]="lineForm.quantity" label="Cantidad *" />
@@ -124,10 +146,22 @@ import { PrintService } from '../../core/services/print.service';
 export class QuoteDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly quoteService = inject(QuoteService);
+  private readonly catalog = inject(CatalogService);
   private readonly queryClient = inject(QueryClient);
   private readonly printService = inject(PrintService);
+  private readonly notification = inject(NotificationService);
 
   readonly id = this.route.snapshot.params['id'] as string;
+
+  readonly columnDefs: ColumnDef[] = [
+    { key: 'lineNumber', label: '#' },
+    { key: 'description', label: 'Descripción' },
+    { key: 'quantity', label: 'Cantidad' },
+    { key: 'unitPrice', label: 'Precio ud.' },
+    { key: 'vatRate', label: 'IVA' },
+    { key: 'totalPrice', label: 'Total' },
+    { key: '', label: '' },
+  ];
 
   readonly quoteQuery = injectQuery<QuoteResponse>(() => ({
     queryKey: ['quote', this.id],
@@ -158,6 +192,10 @@ export class QuoteDetailComponent {
       return { previous };
     },
     onError: (_err, _action, context) => { if (context?.previous) this.queryClient.setQueryData(['quote', this.id], context.previous); },
+    onSuccess: (_data, action) => {
+      const messages: Record<string, string> = { issue: 'Presupuesto emitido correctamente', accept: 'Presupuesto aceptado', reject: 'Presupuesto rechazado', cancel: 'Presupuesto cancelado' };
+      this.notification.success(messages[action] ?? 'Estado actualizado');
+    },
     onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quotes'] });
@@ -176,12 +214,13 @@ export class QuoteDetailComponent {
         unitPrice: body.unitPrice,
         vatRate: body.vatRate,
         totalPrice: body.quantity * body.unitPrice * (1 + body.vatRate / 100),
-        profileId: null,
-        itemId: null,
+        profileId: body.profileId ?? null,
+        itemId: body.itemId ?? null,
       };
       return optimisticAddToArray(this.queryClient, ['quote-lines', this.id], tempLine);
     },
     onError: (_err, _body, context) => { if (context) rollbackArray(this.queryClient, ['quote-lines', this.id], context); },
+    onSuccess: () => this.notification.success('Línea añadida correctamente'),
     onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
@@ -193,6 +232,7 @@ export class QuoteDetailComponent {
     mutationFn: (lineId) => firstValueFrom(this.quoteService.removeLine(this.id, lineId)),
     onMutate: (lineId) => optimisticRemoveFromArray<QuoteLineResponse>(this.queryClient, ['quote-lines', this.id], lineId),
     onError: (_err, lineId, context) => { if (context) rollbackArray(this.queryClient, ['quote-lines', this.id], context); },
+    onSuccess: () => this.notification.success('Línea eliminada correctamente'),
     onSettled: () => {
       this.queryClient.invalidateQueries({ queryKey: ['quote-lines', this.id] });
       this.queryClient.invalidateQueries({ queryKey: ['quote', this.id] });
@@ -206,6 +246,34 @@ export class QuoteDetailComponent {
   readonly showCancelDialog = signal(false);
   readonly showDeleteLineDialog = signal(false);
   private deleteLineTarget = '';
+
+  readonly profileSearch = signal('');
+  readonly debouncedSearch = signal('');
+  readonly showSearchResults = signal(false);
+
+  private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  readonly searchProfilesQuery = injectQuery<Page<CatalogProfile>>(() => ({
+    queryKey: ['catalog-search', this.debouncedSearch()],
+    queryFn: () => firstValueFrom(this.catalog.searchProfiles(this.debouncedSearch())),
+    enabled: this.debouncedSearch().length >= 2,
+  }));
+
+  onDescriptionInput(value: string) {
+    this.profileSearch.set(value);
+    if (this.searchTimeout) clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.debouncedSearch.set(this.profileSearch());
+      this.showSearchResults.set(this.profileSearch().length >= 2);
+    }, 300);
+  }
+
+  selectProfile(p: CatalogProfile) {
+    this.lineModel.set({ ...this.lineModel(), description: p.designation, profileId: p.id, itemId: undefined });
+    this.profileSearch.set(p.designation);
+    this.showSearchResults.set(false);
+    this.debouncedSearch.set('');
+  }
 
   transition(action: string) {
     this.statusMutation.mutate(action);

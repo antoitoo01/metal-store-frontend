@@ -4,9 +4,9 @@ import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-quer
 import { ActivatedRoute } from '@angular/router';
 import { CatalogService, ImageUploadResponse } from './catalog.service';
 import { CatalogProfile } from '../../core/models/api.types';
-import { BackLinkComponent } from '../../shared/components/back-link.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { ImageUploadComponent } from '../../shared/components/image-upload.component';
+import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
 
 @Component({
   selector: 'app-catalog-profile-detail',

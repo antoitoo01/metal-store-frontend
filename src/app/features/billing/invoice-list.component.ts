@@ -1,14 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { BillingService } from './billing.service';
 import { InvoiceResponse, Page } from '../../core/models/api.types';
-import { PaginationComponent } from '../../shared/components/pagination.component';
-import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
-import { DataStateComponent } from '../../shared/components/data-state.component';
-import { TableComponent } from '../../shared/components/table.component';
-import { SearchInputComponent } from '../../shared/components/search-input.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
+import { TableComponent } from '../../shared/components/table/table.component';
+import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
+import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
 
 @Component({
   selector: 'app-invoice-list',
@@ -21,13 +22,44 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Nueva factura</a>
       </div>
 
-      <div class="mt-4">
+      <div class="mt-4 flex flex-wrap items-center gap-3">
         <app-search-input placeholder="Buscar factura…" (searchChange)="search($event)" />
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 dark:text-gray-400">Estado:</label>
+          <select
+            (change)="setStatusFilter($any($event.target).value)"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
+          >
+            <option value="">Todos</option>
+            <option value="DRAFT">Borrador</option>
+            <option value="ISSUED">Emitida</option>
+            <option value="PAID">Pagada</option>
+            <option value="CANCELLED">Cancelada</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 dark:text-gray-400">Desde:</label>
+          <input
+            type="date"
+            [value]="dateFrom()"
+            (change)="setDateFrom($any($event.target).value)"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 dark:text-gray-400">Hasta:</label>
+          <input
+            type="date"
+            [value]="dateTo()"
+            (change)="setDateTo($any($event.target).value)"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
       </div>
 
-      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar facturas' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="['Número', 'Cliente', 'Fecha', 'Vencimiento', 'Total', 'Estado', '']">
-          @for (inv of query.data()?.content ?? []; track inv.id) {
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar facturas' : undefined" [empty]="filteredInvoices().length === 0">
+        <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
+          @for (inv of filteredInvoices(); track inv.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ inv.invoiceNumber }}</td>
               <td class="text-gray-600 dark:text-gray-400">{{ inv.customerName ?? '—' }}</td>
@@ -47,9 +79,6 @@ import { SearchInputComponent } from '../../shared/components/search-input.compo
         <div class="mt-4">
           <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
         </div>
-        @if (q() && query.data()) {
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ query.data()!.totalElements }} resultados</p>
-        }
       </app-data-state>
     </div>
   `,
@@ -60,14 +89,64 @@ export class InvoiceListComponent {
   readonly q = signal('');
   readonly page = signal(0);
   readonly size = 20;
+  readonly statusFilter = signal('');
+  readonly dateFrom = signal('');
+  readonly dateTo = signal('');
+
+  readonly sortBy = signal('');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
+
+  protected readonly columnDefs: ColumnDef[] = [
+    { key: 'invoiceNumber', label: 'Número', sortable: true },
+    { key: 'customerName', label: 'Cliente', sortable: true },
+    { key: 'issueDate', label: 'Fecha', sortable: true },
+    { key: 'dueDate', label: 'Vencimiento', sortable: true },
+    { key: 'total', label: 'Total', sortable: true },
+    { key: 'status', label: 'Estado', sortable: true },
+    { key: '', label: '' },
+  ];
+
+  protected readonly filteredInvoices = computed(() => {
+    const data = this.query.data()?.content;
+    if (!data) return [];
+    let result = data;
+    const status = this.statusFilter();
+    if (status) result = result.filter(inv => inv.status === status);
+    const from = this.dateFrom();
+    if (from) result = result.filter(inv => inv.issueDate >= from);
+    const to = this.dateTo();
+    if (to) result = result.filter(inv => inv.issueDate <= to);
+    return result;
+  });
 
   readonly query = injectQuery<Page<InvoiceResponse>>(() => ({
-    queryKey: ['invoices', { page: this.page(), q: this.q() }],
-    queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size, this.q() || undefined)),
+    queryKey: ['invoices', { page: this.page(), q: this.q(), status: this.statusFilter() || undefined, sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
+    queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
+
+  onSortChange(sort: SortChange): void {
+    this.sortBy.set(sort.column);
+    this.sortDir.set(sort.direction);
+    this.page.set(0);
+  }
 
   search(term: string) {
     this.q.set(term);
+    this.page.set(0);
+  }
+
+  setStatusFilter(status: string): void {
+    this.statusFilter.set(status);
+    this.page.set(0);
+  }
+
+  setDateFrom(value: string): void {
+    this.dateFrom.set(value);
+    this.page.set(0);
+  }
+
+  setDateTo(value: string): void {
+    this.dateTo.set(value);
     this.page.set(0);
   }
 

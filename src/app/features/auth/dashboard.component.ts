@@ -2,10 +2,10 @@ import { Component, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { DashboardService } from '../../core/services/dashboard.service';
-import { KpiCardComponent } from '../../shared/components/kpi-card.component';
+import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { RouterLink } from '@angular/router';
-import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
-import { CardComponent } from '../../shared/components/card.component';
+import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { CardComponent } from '../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,10 +16,10 @@ import { CardComponent } from '../../shared/components/card.component';
       <p class="mt-2 text-gray-600 dark:text-gray-400">Bienvenido a Metal Store</p>
 
       <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <app-kpi-card label="Clientes" [value]="clientCount.data() ?? null" route="/clients" />
-        <app-kpi-card label="Inventario" [value]="inventoryCount.data() ?? null" route="/inventory" />
-        <app-kpi-card label="Presupuestos" [value]="quoteCount.data() ?? null" route="/quotes" />
-        <app-kpi-card label="Facturas" [value]="invoiceCount.data() ?? null" route="/billing/invoices" />
+        <app-kpi-card label="Clientes" [value]="clientCount.data() ?? null" [loading]="clientCount.isPending()" route="/clients" />
+        <app-kpi-card label="Inventario" [value]="inventoryCount.data() ?? null" [loading]="inventoryCount.isPending()" route="/inventory" />
+        <app-kpi-card label="Presupuestos" [value]="quoteCount.data() ?? null" [loading]="quoteCount.isPending()" route="/quotes" />
+        <app-kpi-card label="Facturas" [value]="invoiceCount.data() ?? null" [loading]="invoiceCount.isPending()" route="/billing/invoices" />
       </div>
 
       <div class="mt-8 grid gap-6 lg:grid-cols-2">

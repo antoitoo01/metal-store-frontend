@@ -13,7 +13,11 @@ import { RouterLink } from '@angular/router';
       </div>
       <div>
         <p class="text-sm text-gray-500 dark:text-gray-400">{{ label() }}</p>
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ value() ?? '—' }}</p>
+        @if (loading()) {
+          <div class="mt-1 h-7 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" data-testid="kpi-skeleton"></div>
+        } @else {
+          <p class="text-2xl font-bold text-gray-900 dark:text-white" data-testid="kpi-value">{{ value() ?? '—' }}</p>
+        }
       </div>
     </a>
   `,
@@ -23,4 +27,5 @@ export class KpiCardComponent {
   readonly value = input.required<number | null>();
   readonly route = input.required<string>();
   readonly icon = input('chart-bar');
+  readonly loading = input(false);
 }

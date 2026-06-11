@@ -3,8 +3,8 @@ import { form, FormField, required } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
-import { InputComponent } from '../../shared/components/input.component';
-import { ButtonComponent } from '../../shared/components/button.component';
+import { InputComponent } from '../../shared/components/input/input.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 interface RegisterFormData {
   email: string;
