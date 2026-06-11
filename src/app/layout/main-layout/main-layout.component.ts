@@ -6,7 +6,6 @@ import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-main-layout',
-  standalone: true,
   imports: [RouterOutlet, SidebarComponent, TopbarComponent, BreadcrumbComponent],
   template: `
     <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">

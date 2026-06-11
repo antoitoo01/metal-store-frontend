@@ -3,7 +3,6 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 
 @Component({
   selector: 'app-input',
-  standalone: true,
   host: { style: 'display: block;' },
   template: `
     <div class="flex flex-col gap-1.5">

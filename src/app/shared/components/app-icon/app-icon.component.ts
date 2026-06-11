@@ -17,7 +17,6 @@ import {
 
 @Component({
   selector: 'app-icon',
-  standalone: true,
   imports: [LucideAngularModule],
   template: `
     <lucide-angular
