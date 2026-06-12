@@ -8,4 +8,7 @@ export type AppIconName =
   | 'user-cog'
   | 'panel-left-open'
   | 'panel-left-close'
-  | 'anvil';
+  | 'anvil'
+  | 'chevron-up'
+  | 'chevron-down'
+  | 'chevrons-up-down';

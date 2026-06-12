@@ -2,7 +2,11 @@ import { Component, computed, input } from '@angular/core';
 import { AppIconName } from './app-icon-name.config';
 
 import {
+  Anvil,
   BookOpen,
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
   FileText,
   LayoutDashboard,
   LucideAngularModule,
@@ -12,8 +16,23 @@ import {
   Receipt,
   UserCog,
   Users,
-  Anvil
 } from 'lucide-angular';
+
+const ICON_MAP: Record<AppIconName, any> = {
+  'layout-dashboard': LayoutDashboard,
+  'users': Users,
+  'book-open': BookOpen,
+  'package': Package,
+  'file-text': FileText,
+  'receipt': Receipt,
+  'user-cog': UserCog,
+  'panel-left-close': PanelLeftClose,
+  'panel-left-open': PanelLeftOpen,
+  'anvil': Anvil,
+  'chevron-up': ChevronUp,
+  'chevron-down': ChevronDown,
+  'chevrons-up-down': ChevronsUpDown,
+};
 
 @Component({
   selector: 'app-icon',
@@ -21,47 +40,13 @@ import {
   template: `
     <lucide-angular
       [img]="icon()"
-      class="h-5 w-5"
+      [size]="size()"
     />
   `,
 })
 export class AppIconComponent {
   readonly name = input.required<AppIconName>();
+  readonly size = input(20);
 
-  readonly icon = computed(() => {
-    switch (this.name()) {
-      case 'layout-dashboard':
-        return LayoutDashboard;
-
-      case 'users':
-        return Users;
-
-      case 'book-open':
-        return BookOpen;
-
-      case 'package':
-        return Package;
-
-      case 'file-text':
-        return FileText;
-
-      case 'receipt':
-        return Receipt;
-
-      case 'user-cog':
-        return UserCog;
-
-      case 'panel-left-close':
-        return PanelLeftClose;
-
-      case 'panel-left-open':
-        return PanelLeftOpen;
-
-      case 'anvil':
-        return Anvil;
-
-      default:
-        return LayoutDashboard;
-    }
-  });
+  protected readonly icon = computed(() => ICON_MAP[this.name()] ?? LayoutDashboard);
 }

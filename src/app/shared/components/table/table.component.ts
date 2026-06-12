@@ -1,8 +1,10 @@
-import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { ColumnDef, SortChange } from './column-def.type';
+import { AppIconComponent } from '../app-icon/app-icon.component';
 
 @Component({
   selector: 'app-table',
+  imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     ':host ::ng-deep td { padding: 0.5rem 1rem 0.5rem 1rem; }',
@@ -29,14 +31,12 @@ import { ColumnDef, SortChange } from './column-def.type';
                 <span class="flex items-center gap-1">
                   {{ col.label }}
                   @if (col.sortable) {
-                    @if (sortBy() === col.key) {
-                      @if (sortDir() === 'asc') {
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5"><path d="M12 4l8 8H4z"/></svg>
-                      } @else {
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5"><path d="M12 20l-8-8h16z"/></svg>
-                      }
+                    @if (sortBy() === col.key && sortDir() === 'asc') {
+                      <app-icon name="chevron-up" [size]="14" />
+                    } @else if (sortBy() === col.key && sortDir() === 'desc') {
+                      <app-icon name="chevron-down" [size]="14" />
                     } @else {
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 opacity-30"><path d="M8 8l4-4 4 4M8 16l4 4 4-4"/></svg>
+                      <app-icon name="chevrons-up-down" [size]="14" class="opacity-30" />
                     }
                   }
                 </span>
