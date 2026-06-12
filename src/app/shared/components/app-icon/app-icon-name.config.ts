@@ -11,4 +11,5 @@ export type AppIconName =
   | 'anvil'
   | 'chevron-up'
   | 'chevron-down'
-  | 'chevrons-up-down';
+  | 'chevrons-up-down'
+  | 'menu';

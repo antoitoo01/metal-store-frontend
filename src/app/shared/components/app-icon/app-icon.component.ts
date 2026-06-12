@@ -10,6 +10,7 @@ import {
   FileText,
   LayoutDashboard,
   LucideAngularModule,
+  Menu,
   Package,
   PanelLeftClose,
   PanelLeftOpen,
@@ -32,6 +33,7 @@ const ICON_MAP: Record<AppIconName, any> = {
   'chevron-up': ChevronUp,
   'chevron-down': ChevronDown,
   'chevrons-up-down': ChevronsUpDown,
+  'menu': Menu,
 };
 
 @Component({
