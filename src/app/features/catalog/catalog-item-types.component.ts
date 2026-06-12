@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { form, FormField } from '@angular/forms/signals';
 import { CatalogService } from './catalog.service';
-import { ColumnDef } from '../../shared/components/table/column-def.type';
+import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
 import { TypeResponse, Page } from '../../core/models/api.types';
 import { NotificationService } from '../../core/services/notification.service';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
@@ -17,7 +17,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   imports: [FormField, ButtonComponent, DataStateComponent, TableComponent, ConfirmDialogComponent],
   template: `
     <div>
-      <form (ngSubmit)="createType()" class="flex items-center gap-2">
+      <form (submit)="createType($event)" class="flex items-center gap-2">
         <input
           [formField]="form.newName"
           placeholder="Nuevo tipo…"
@@ -29,7 +29,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
       </form>
 
       <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="columnDefs">
+        <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (t of query.data()?.content; track t.id) {
             <tr>
               <td>
@@ -77,7 +77,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 })
 export class CatalogItemTypesComponent {
   readonly columnDefs: ColumnDef[] = [
-    { key: 'name', label: 'Nombre' },
+    { key: 'name', label: 'Nombre', sortable: true },
     { key: 'actions', label: 'Acciones' },
   ];
 
@@ -88,9 +88,12 @@ export class CatalogItemTypesComponent {
   readonly model = signal({ newName: '' });
   readonly form = form(this.model);
 
+  readonly sortBy = signal('');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
+
   readonly query = injectQuery<Page<TypeResponse>>(() => ({
-    queryKey: ['catalog-item-types'],
-    queryFn: () => firstValueFrom(this.catalog.itemTypes()),
+    queryKey: ['catalog-item-types', { sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
+    queryFn: () => firstValueFrom(this.catalog.itemTypes(0, 50, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
 
   readonly createMutation = injectMutation<TypeResponse, Error, string>(() => ({
@@ -116,7 +119,13 @@ export class CatalogItemTypesComponent {
     },
   }));
 
-  createType() {
+  onSortChange(sort: SortChange): void {
+    this.sortBy.set(sort.column);
+    this.sortDir.set(sort.direction);
+  }
+
+  createType(event: Event) {
+    event.preventDefault();
     const name = this.model().newName.trim();
     if (!name) return;
     this.createMutation.mutate(name);

@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { injectQuery } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { CatalogService } from './catalog.service';
-import { ColumnDef } from '../../shared/components/table/column-def.type';
+import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
 import { CatalogItem, Page } from '../../core/models/api.types';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
@@ -20,7 +20,7 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
       </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar artículos' : undefined" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="columnDefs">
+        <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (item of query.data()?.content; track item.id) {
             <tr>
           <td class="font-medium text-gray-900 dark:text-white">{{ item.designation }}</td>
@@ -43,12 +43,12 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
 })
 export class CatalogItemsComponent {
   readonly columnDefs: ColumnDef[] = [
-    { key: 'designation', label: 'Designación' },
-    { key: 'sku', label: 'SKU' },
-    { key: 'itemType', label: 'Tipo' },
-    { key: 'material', label: 'Material' },
-    { key: 'weightKgM', label: 'Peso (kg/m)' },
-    { key: 'estimatedPriceKg', label: 'Precio est. (€/kg)' },
+    { key: 'designation', label: 'Designación', sortable: true },
+    { key: 'sku', label: 'SKU', sortable: true },
+    { key: 'itemType', label: 'Tipo', sortable: true },
+    { key: 'material', label: 'Material', sortable: true },
+    { key: 'weightKgM', label: 'Peso (kg/m)', sortable: true },
+    { key: 'estimatedPriceKg', label: 'Precio est. (€/kg)', sortable: true },
     { key: 'actions', label: '' },
   ];
 
@@ -58,13 +58,22 @@ export class CatalogItemsComponent {
   readonly page = signal(0);
   readonly size = 20;
 
+  readonly sortBy = signal('');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
+
   readonly query = injectQuery<Page<CatalogItem>>(() => ({
-    queryKey: ['catalog-items', { page: this.page(), q: this.q() }],
-    queryFn: () => firstValueFrom(this.catalog.items(this.page(), this.size, this.q() || undefined)),
+    queryKey: ['catalog-items', { page: this.page(), q: this.q(), sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
+    queryFn: () => firstValueFrom(this.catalog.items(this.page(), this.size, this.q() || undefined, undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
 
   search(term: string) {
     this.q.set(term);
+    this.page.set(0);
+  }
+
+  onSortChange(sort: SortChange): void {
+    this.sortBy.set(sort.column);
+    this.sortDir.set(sort.direction);
     this.page.set(0);
   }
 

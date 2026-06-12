@@ -13,12 +13,13 @@ export class CatalogService {
   private readonly api = `${environment.apiUrl}/api/catalog`;
   readonly apiUrl = `${environment.apiUrl}/api`;
 
-  profiles(page = 0, size = 20, q?: string, standard?: string, shapeType?: string, familyCode?: string) {
+  profiles(page = 0, size = 20, q?: string, standard?: string, shapeType?: string, familyCode?: string, sort?: string) {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
     if (standard) params = params.set('standard', standard);
     if (shapeType) params = params.set('shapeType', shapeType);
     if (familyCode) params = params.set('familyCode', familyCode);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<Page<CatalogProfile>>(`${this.api}/profiles`, { params });
   }
 
@@ -32,10 +33,11 @@ export class CatalogService {
     return this.http.get<CatalogFamily[]>(`${this.api}/families`, { params });
   }
 
-  items(page = 0, size = 20, q?: string, itemType?: string) {
+  items(page = 0, size = 20, q?: string, itemType?: string, sort?: string) {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
     if (itemType) params = params.set('itemType', itemType);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<Page<CatalogItem>>(`${this.api}/items`, { params });
   }
 
@@ -43,8 +45,9 @@ export class CatalogService {
     return this.http.get<CatalogItem>(`${this.api}/items/${id}`);
   }
 
-  itemTypes(page = 0, size = 50) {
-    const params = new HttpParams().set('page', page).set('size', size);
+  itemTypes(page = 0, size = 50, sort?: string) {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<Page<TypeResponse>>(`${this.api}/item-types`, { params });
   }
 
