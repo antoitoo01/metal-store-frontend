@@ -8,8 +8,9 @@ export class BillingService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/api/billing`;
 
-  prices(page = 0, size = 20) {
-    const params = new HttpParams().set('page', page).set('size', size);
+  prices(page = 0, size = 20, sort?: string) {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<Page<PriceResponse>>(`${this.api}/prices`, { params });
   }
 

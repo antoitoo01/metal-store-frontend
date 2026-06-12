@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { form, FormField } from '@angular/forms/signals';
 import { BillingService } from './billing.service';
-import { ColumnDef } from '../../shared/components/table/column-def.type';
+import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
 import { PriceResponse, UpsertPriceRequest, Page } from '../../core/models/api.types';
 import { NotificationService } from '../../core/services/notification.service';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
@@ -61,7 +61,7 @@ interface PriceFormData {
       </div>
 
       <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
-        <app-table [columns]="columnDefs">
+        <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (p of filtered(); track p.id) {
             <tr>
           <td class="font-mono text-xs text-gray-600 dark:text-gray-400">{{ p.profileId ?? '—' }}</td>
@@ -90,11 +90,11 @@ interface PriceFormData {
 })
 export class PriceListComponent {
   readonly columnDefs: ColumnDef[] = [
-    { key: 'profileId', label: 'Profile ID' },
-    { key: 'itemId', label: 'Item ID' },
-    { key: 'unitPrice', label: 'Precio' },
-    { key: 'validFrom', label: 'Válido desde' },
-    { key: 'validTo', label: 'Válido hasta' },
+    { key: 'profileId', label: 'Profile ID', sortable: true },
+    { key: 'itemId', label: 'Item ID', sortable: true },
+    { key: 'unitPrice', label: 'Precio', sortable: true },
+    { key: 'validFrom', label: 'Válido desde', sortable: true },
+    { key: 'validTo', label: 'Válido hasta', sortable: true },
     { key: 'actions', label: '' },
   ];
 
@@ -102,6 +102,9 @@ export class PriceListComponent {
   private readonly notification = inject(NotificationService);
   readonly q = signal('');
   private readonly queryClient = inject(QueryClient);
+
+  readonly sortBy = signal('');
+  readonly sortDir = signal<'asc' | 'desc'>('asc');
 
   readonly priceModel = signal<PriceFormData>({
     profileId: '',
@@ -115,8 +118,8 @@ export class PriceListComponent {
   readonly priceForm = form(this.priceModel);
 
   readonly query = injectQuery<Page<PriceResponse>>(() => ({
-    queryKey: ['prices'],
-    queryFn: () => firstValueFrom(this.billing.prices()),
+    queryKey: ['prices', { sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
+    queryFn: () => firstValueFrom(this.billing.prices(0, 20, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
 
   readonly filtered = computed(() => {
@@ -133,6 +136,11 @@ export class PriceListComponent {
 
   search(term: string) {
     this.q.set(term);
+  }
+
+  onSortChange(sort: SortChange): void {
+    this.sortBy.set(sort.column);
+    this.sortDir.set(sort.direction);
   }
 
   readonly editingId = signal<string | null>(null);
