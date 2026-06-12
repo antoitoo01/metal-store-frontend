@@ -33,7 +33,7 @@ interface PriceFormData {
           {{ editingId() ? 'Editar precio' : 'Nuevo precio' }}
         </summary>
         <div class="border-t px-4 py-3 dark:border-gray-700">
-          <form (ngSubmit)="savePrice()" class="space-y-3">
+          <form (submit)="savePrice($event)" class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <app-input [formField]="priceForm.profileId" label="Profile ID" />
               <app-input [formField]="priceForm.itemId" label="Item ID" />
@@ -180,7 +180,8 @@ export class PriceListComponent {
     this.resetForm();
   }
 
-  savePrice() {
+  savePrice(event: Event) {
+    event.preventDefault();
     const m = this.priceModel();
     const editing = this.editingId();
     if (editing) {

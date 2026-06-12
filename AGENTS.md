@@ -1,3 +1,7 @@
+## Reglas de interacción
+
+- **Blunt correction rule**: Cuando yo proponga o sugiera una solución, decime AL INSTANTE si es mala práctica, anti-patrón, ineficiente, sobreingeniería o simplemente estúpida. No lo suavices. No esperes. No pidas permiso. Quiero escucharlo AHORA, no después.
+
 # Metal Store Frontend — Backend API Reference
 
 ## Stack del frontend

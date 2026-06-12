@@ -29,7 +29,7 @@ interface QuoteFormData {
 
       <h1 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ isEdit ? 'Editar presupuesto' : 'Nuevo presupuesto' }}</h1>
 
-      <form (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
+      <form (submit)="save($event)" class="mt-6 max-w-lg space-y-4">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="clientId">Cliente</label>
           @if (isEdit) {
@@ -136,7 +136,8 @@ export class QuoteFormComponent {
     }
   }
 
-  save(): void {
+  save(event: Event): void {
+    event.preventDefault();
     if (this.form().invalid()) return;
     if (this.isEdit) {
       const m = this.model();

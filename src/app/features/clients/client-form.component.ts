@@ -90,7 +90,8 @@ export class ClientFormComponent {
     }
   }
 
-  save(): void {
+  save(event: Event): void {
+    event.preventDefault();
     if (this.form().invalid()) return;
     this.saveMutation.mutate(this.model() as CreateClientRequest);
   }

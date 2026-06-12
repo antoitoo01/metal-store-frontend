@@ -30,7 +30,7 @@ interface InventoryFormData {
 
       <h1 class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{{ isEdit ? 'Editar' : 'Nuevo' }} registro de inventario</h1>
 
-      <form (ngSubmit)="save()" class="mt-6 max-w-lg space-y-4">
+      <form (submit)="save($event)" class="mt-6 max-w-lg space-y-4">
         <app-input [formField]="form.quantity" label="Cantidad *" type="number" [error]="quantityError()" />
         <app-input [formField]="form.location" label="Ubicación" />
 
@@ -109,7 +109,8 @@ export class InventoryFormComponent {
     }
   }
 
-  save(): void {
+  save(event: Event): void {
+    event.preventDefault();
     if (this.form().invalid()) return;
     const m = this.model();
     this.saveMutation.mutate({

@@ -42,7 +42,8 @@ export class LoginComponent {
     return field.errors()[0]?.message;
   });
 
-  login(): void {
+  login(event: Event): void {
+    event.preventDefault();
     if (this.form().invalid()) return;
 
     this.loading.set(true);

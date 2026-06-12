@@ -18,7 +18,7 @@ interface RegisterFormData {
   imports: [FormField, RouterLink, InputComponent, ButtonComponent],
   template: `
     <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
-      <form (ngSubmit)="register()" class="w-full max-w-sm space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
+      <form (submit)="register($event)" class="w-full max-w-sm space-y-7 rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
         <div class="space-y-1">
           <h1 class="text-center text-2xl font-bold text-gray-900 dark:text-white">Metal Store</h1>
           <p class="text-center text-sm text-gray-500 dark:text-gray-400">Crea tu cuenta</p>
@@ -114,7 +114,8 @@ export class RegisterComponent {
     return field.errors()[0]?.message;
   });
 
-  register(): void {
+  register(event: Event): void {
+    event.preventDefault();
     if (this.form().invalid()) return;
 
     this.error.set('');
