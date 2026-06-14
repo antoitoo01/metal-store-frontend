@@ -9,6 +9,7 @@ import { SKIP_AUTH } from './jwt.interceptor';
 
 export const SKIP_TOAST = new HttpContextToken<boolean>(() => false);
 export const SKIP_AUTH_REDIRECT = new HttpContextToken<boolean>(() => false);
+export const SKIP_LOGOUT_ON_401 = new HttpContextToken<boolean>(() => false);
 
 let isRefreshing = false;
 let refreshComplete: Subject<void> | null = null;
@@ -20,7 +21,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err) => {
-      if (err.status === 401 && !req.context.get(SKIP_AUTH) && auth.accessToken) {
+      if (err.status === 401 && !req.context.get(SKIP_AUTH) && !req.context.get(SKIP_LOGOUT_ON_401) && auth.accessToken) {
         if (!isRefreshing) {
           isRefreshing = true;
           refreshComplete = new Subject<void>();
@@ -50,7 +51,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         );
       }
 
-      if (err.status === 401) {
+      if (err.status === 401 && !req.context.get(SKIP_LOGOUT_ON_401)) {
         auth.clearAuth();
         if (!req.context.get(SKIP_AUTH_REDIRECT)) {
           router.navigate(['/login']);
