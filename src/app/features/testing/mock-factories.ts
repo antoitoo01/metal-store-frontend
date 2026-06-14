@@ -1,11 +1,11 @@
 import { ClientResponse, QuoteResponse, InvoiceResponse, QuoteLineResponse, InvoiceLineResponse, CatalogProfile, CatalogFamily, CatalogItem, InventoryItemResponse, PriceResponse, TypeResponse } from '../../core/models/api.types';
 
 export function mockClient(overrides?: Partial<ClientResponse>): ClientResponse {
-  return { id: crypto.randomUUID(), tenantId: '', name: 'Test Client', email: 'test@test.com', phone: null, address: null, vatNumber: 'B12345678', notes: null, status: 'ACTIVE', createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00', ...overrides };
+  return { id: crypto.randomUUID(), organizationId: '', name: 'Test Client', email: 'test@test.com', phone: null, address: null, vatNumber: 'B12345678', notes: null, status: 'ACTIVE', createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00', ...overrides };
 }
 
 export function mockQuote(overrides?: Partial<QuoteResponse>): QuoteResponse {
-  return { id: crypto.randomUUID(), tenantId: '', quoteNumber: 'PRES-2026-001', clientId: null, customerName: 'Test Client', customerVat: null, customerAddress: null, issueDate: '2026-06-01', validUntil: null, status: 'DRAFT', subtotal: 100, vatTotal: 21, total: 121, notes: null, ...overrides };
+  return { id: crypto.randomUUID(), organizationId: '', quoteNumber: 'PRES-2026-001', clientId: null, customerName: 'Test Client', customerVat: null, customerAddress: null, issueDate: '2026-06-01', validUntil: null, status: 'DRAFT', subtotal: 100, vatTotal: 21, total: 121, notes: null, ...overrides };
 }
 
 export function mockQuoteLine(overrides?: Partial<QuoteLineResponse>): QuoteLineResponse {
@@ -13,7 +13,7 @@ export function mockQuoteLine(overrides?: Partial<QuoteLineResponse>): QuoteLine
 }
 
 export function mockInvoice(overrides?: Partial<InvoiceResponse>): InvoiceResponse {
-  return { id: crypto.randomUUID(), tenantId: '', invoiceNumber: 'FAC-2026-001', customerName: 'Test Client', customerVat: null, customerAddress: null, issueDate: '2026-06-01', dueDate: null, status: 'DRAFT', subtotal: 100, vatTotal: 21, total: 121, notes: null, ...overrides };
+  return { id: crypto.randomUUID(), organizationId: '', invoiceNumber: 'FAC-2026-001', customerName: 'Test Client', customerVat: null, customerAddress: null, issueDate: '2026-06-01', dueDate: null, status: 'DRAFT', subtotal: 100, vatTotal: 21, total: 121, notes: null, ...overrides };
 }
 
 export function mockInvoiceLine(overrides?: Partial<InvoiceLineResponse>): InvoiceLineResponse {
@@ -33,15 +33,15 @@ export function mockCatalogItem(overrides?: Partial<CatalogItem>): CatalogItem {
 }
 
 export function mockInventoryItem(overrides?: Partial<InventoryItemResponse>): InventoryItemResponse {
-  return { id: crypto.randomUUID(), tenantId: '', profileId: null, itemId: null, quantity: 10, location: 'Warehouse A', costPriceEur: 150, supplier: 'SteelCo', receivedAt: '2026-01-15T00:00:00', notes: null, ...overrides };
+  return { id: crypto.randomUUID(), organizationId: '', profileId: null, itemId: null, quantity: 10, location: 'Warehouse A', costPriceEur: 150, supplier: 'SteelCo', receivedAt: '2026-01-15T00:00:00', notes: null, ...overrides };
 }
 
 export function mockPrice(overrides?: Partial<PriceResponse>): PriceResponse {
-  return { id: crypto.randomUUID(), tenantId: '', profileId: null, itemId: null, unitPrice: 2.5, validFrom: null, validTo: null, notes: null, ...overrides };
+  return { id: crypto.randomUUID(), organizationId: '', profileId: null, itemId: null, unitPrice: 2.5, validFrom: null, validTo: null, notes: null, ...overrides };
 }
 
 export function mockType(overrides?: Partial<TypeResponse>): TypeResponse {
-  return { id: crypto.randomUUID(), tenantId: '', name: 'PLATE', ...overrides };
+  return { id: crypto.randomUUID(), organizationId: '', name: 'PLATE', ...overrides };
 }
 
 export function mockPage<T>(content: T[], totalElements = content.length) {

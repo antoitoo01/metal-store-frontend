@@ -43,6 +43,7 @@ __screenshots__/
 .env
 .env.*
 
-# System files
+# SDD planning artifacts
+/openspec/
 .DS_Store
 Thumbs.db

@@ -4,7 +4,7 @@ export type QuoteStatus = 'DRAFT' | 'ISSUED' | 'ACCEPTED' | 'REJECTED' | 'CANCEL
 
 export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED';
 
-export type UserRole = 'ADMIN' | 'USER';
+export type UserRole = 'ADMIN' | 'USER' | 'ORGANIZATION_OWNER' | 'SUPER_ADMIN' | 'WORKER';
 
 export interface Page<T> {
   content: T[];
@@ -39,7 +39,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   username?: string;
-  tenantName?: string;
+  tenantName?: string; // TODO: rename to organizationName when backend updates DTO
 }
 
 export interface LoginResponse {
@@ -50,8 +50,9 @@ export interface LoginResponse {
   email: string;
   username?: string;
   role: UserRole;
-  tenantId: string;
-  tenantName: string;
+  tenantId: string;        // user's auth identity (from JWT sub or backend)
+  organizationId: string;
+  organizationName: string;
 }
 
 export interface RefreshRequest {
@@ -60,11 +61,12 @@ export interface RefreshRequest {
 
 export interface UserResponse {
   id: string;
+  tenantId: string;
   username: string;
   email: string;
   role: UserRole;
-  tenantId: string;
-  tenantName: string;
+  organizationId: string;
+  organizationName: string;
 }
 
 export interface UpdateUserRequest {
@@ -83,7 +85,7 @@ export interface CreateClientRequest {
 
 export interface ClientResponse {
   id: string;
-  tenantId: string;
+  organizationId: string;
   name: string;
   email: string | null;
   phone: string | null;
@@ -133,7 +135,7 @@ export interface CatalogItem {
 
 export interface TypeResponse {
   id: string;
-  tenantId: string;
+  organizationId: string;
   name: string;
 }
 
@@ -153,7 +155,7 @@ export interface CreateInventoryItemRequest {
 
 export interface InventoryItemResponse {
   id: string;
-  tenantId: string;
+  organizationId: string;
   profileId: string | null;
   itemId: string | null;
   quantity: number;
@@ -185,7 +187,7 @@ export interface CreateQuoteLineRequest {
 
 export interface QuoteResponse {
   id: string;
-  tenantId: string;
+  organizationId: string;
   quoteNumber: string;
   clientId: string | null;
   customerName: string | null;
@@ -224,7 +226,7 @@ export interface UpsertPriceRequest {
 
 export interface PriceResponse {
   id: string;
-  tenantId: string;
+  organizationId: string;
   profileId: string | null;
   itemId: string | null;
   unitPrice: number;
@@ -235,7 +237,7 @@ export interface PriceResponse {
 
 export interface InvoiceResponse {
   id: string;
-  tenantId: string;
+  organizationId: string;
   invoiceNumber: string;
   customerName: string | null;
   customerVat: string | null;
@@ -270,4 +272,22 @@ export interface CreateInvoiceLineRequest {
   quantity: number;
   unitPrice: number;
   vatRate: number;
+}
+
+export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'CANCELLED';
+
+export interface InvitationResponse {
+  id: string;
+  organizationId: string;
+  organizationName: string;
+  email: string;
+  status: InvitationStatus;
+  token: string;
+  link: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface CreateInvitationRequest {
+  emails: string[];
 }

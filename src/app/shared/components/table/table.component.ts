@@ -14,7 +14,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
     ':host-context(.dark) ::ng-deep tbody tr:hover { background-color: rgb(30 41 59); }',
   ],
   template: `
-    <div class="overflow-hidden rounded-xl border shadow-sm dark:border-gray-700">
+    <div class="overflow-hidden rounded-xl border shadow-sm dark:border-gray-700 mt-4">
       <table class="w-full text-left text-sm">
         <thead class="bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
           <tr>

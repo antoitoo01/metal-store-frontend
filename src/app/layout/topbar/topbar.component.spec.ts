@@ -9,7 +9,7 @@ describe('TopbarComponent', () => {
 
   beforeEach(async () => {
     authMock = {
-      user: signal({ id: '1', username: 'test', email: 'test@mail.com', role: 'USER', tenantId: 't1', tenantName: 'Test' }),
+      user: signal({ id: '1', tenantId: 't1', username: 'test', email: 'test@mail.com', role: 'USER', organizationId: 't1', organizationName: 'Test' }),
       logout: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
     };
 

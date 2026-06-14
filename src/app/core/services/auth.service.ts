@@ -6,6 +6,7 @@ import { SKIP_TOAST, SKIP_AUTH_REDIRECT } from '../interceptors/error.intercepto
 import { SKIP_AUTH } from '../interceptors/jwt.interceptor';
 import { environment } from '../../../environments/environment';
 
+
 interface StoredAuth {
   accessToken: string;
   refreshToken: string;
@@ -13,7 +14,8 @@ interface StoredAuth {
   username: string;
   role: UserRole;
   tenantId: string;
-  tenantName: string;
+  organizationId: string;
+  organizationName: string;
 }
 
 const STORAGE_KEY = 'metal_store_auth';
@@ -27,10 +29,15 @@ export class AuthService {
   readonly isAuthenticated = signal(false);
 
   #tenantId: string | null = null;
+  #organizationId: string | null = null;
   #accessToken: string | null = null;
 
   get tenantId(): string | null {
     return this.#tenantId;
+  }
+
+  get organizationId(): string | null {
+    return this.#organizationId;
   }
 
   get accessToken(): string | null {
@@ -42,6 +49,7 @@ export class AuthService {
 
     const fallbackTenantId = crypto.randomUUID();
     this.#tenantId = fallbackTenantId;
+    this.#organizationId = fallbackTenantId;
 
     try {
       const user = await firstValueFrom(
@@ -52,6 +60,7 @@ export class AuthService {
       this.#applyUser(user);
     } catch {
       this.#tenantId = null;
+      this.#organizationId = null;
     }
   }
 
@@ -79,6 +88,7 @@ export class AuthService {
 
   clearAuth(): void {
     this.#tenantId = null;
+    this.#organizationId = null;
     this.#accessToken = null;
     this.isAuthenticated.set(false);
     this.user.set(null);
@@ -111,14 +121,16 @@ export class AuthService {
     }).pipe(
       tap((res) => {
         this.#accessToken = res.accessToken;
+        const tenantId = res.tenantId;
         this.#saveToStorage({
           accessToken: res.accessToken,
           refreshToken: res.refreshToken ?? refreshToken,
           email: res.email,
           username: res.username ?? res.email.split('@')[0],
           role: res.role,
-          tenantId: res.tenantId,
-          tenantName: res.tenantName,
+          tenantId,
+          organizationId: res.organizationId,
+          organizationName: res.organizationName,
         }, raw ? localStorage.getItem(STORAGE_KEY) !== null : false);
       }),
     );
@@ -141,11 +153,12 @@ export class AuthService {
       const data: StoredAuth = JSON.parse(raw);
       this.#applyUser({
         id: data.tenantId,
+        tenantId: data.tenantId,
         username: data.username,
         email: data.email,
         role: data.role,
-        tenantId: data.tenantId,
-        tenantName: data.tenantName,
+        organizationId: data.organizationId,
+        organizationName: data.organizationName,
       });
       return true;
     } catch {
@@ -157,16 +170,18 @@ export class AuthService {
     this.user.set(u);
     this.isAuthenticated.set(true);
     this.#tenantId = u.tenantId;
+    this.#organizationId = u.organizationId;
   }
 
   #handleAuthResponse(res: LoginResponse, rememberMe: boolean): void {
     const user: UserResponse = {
       id: res.tenantId,
+      tenantId: res.tenantId,
       username: res.username ?? res.email.split('@')[0],
       email: res.email,
       role: res.role,
-      tenantId: res.tenantId,
-      tenantName: res.tenantName,
+      organizationId: res.organizationId,
+      organizationName: res.organizationName,
     };
     this.#applyUser(user);
     this.#saveToStorage({
@@ -176,11 +191,8 @@ export class AuthService {
       username: res.username ?? res.email.split('@')[0],
       role: res.role,
       tenantId: res.tenantId,
-      tenantName: res.tenantName,
+      organizationId: res.organizationId,
+      organizationName: res.organizationName,
     }, rememberMe);
-  }
-
-  #clearAuth(): void {
-    this.clearAuth();
   }
 }

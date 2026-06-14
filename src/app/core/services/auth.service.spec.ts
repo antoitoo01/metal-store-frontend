@@ -34,8 +34,9 @@ describe('AuthService', () => {
         expiresIn: 3600,
         email: 'test@mail.com',
         role: 'USER',
-        tenantId: 't1',
-        tenantName: 'Test',
+        tenantId: 'tenant-1',
+        organizationId: 't1',
+        organizationName: 'Test',
       };
 
       service.login({ email: 'test@mail.com', password: 'pass1234' }, true).subscribe();
@@ -56,8 +57,9 @@ describe('AuthService', () => {
         expiresIn: 3600,
         email: 'test@mail.com',
         role: 'USER',
-        tenantId: 't1',
-        tenantName: 'Test',
+        tenantId: 'tenant-1',
+        organizationId: 't1',
+        organizationName: 'Test',
       };
 
       service.login({ email: 'test@mail.com', password: 'pass1234' }, false).subscribe();
@@ -84,8 +86,9 @@ describe('AuthService', () => {
         expiresIn: 3600,
         email: 'test@mail.com',
         role: 'USER',
-        tenantId: 't1',
-        tenantName: 'Test',
+        tenantId: 'tenant-1',
+        organizationId: 't1',
+        organizationName: 'Test',
       };
 
       service.login({ email: 'test@mail.com', password: 'pass1234' }, true).subscribe();
@@ -111,8 +114,9 @@ describe('AuthService', () => {
         expiresIn: 3600,
         email: 'test@mail.com',
         role: 'USER',
-        tenantId: 't1',
-        tenantName: 'Test',
+        tenantId: 'tenant-1',
+        organizationId: 't1',
+        organizationName: 'Test',
       } satisfies LoginResponse);
 
       service.updateTokens('new-token', 'new-refresh');
@@ -137,8 +141,9 @@ describe('AuthService', () => {
         expiresIn: 3600,
         email: 'test@mail.com',
         role: 'USER',
-        tenantId: 't1',
-        tenantName: 'Test',
+        tenantId: 'tenant-1',
+        organizationId: 't1',
+        organizationName: 'Test',
       } satisfies LoginResponse);
 
       service.refreshSession().subscribe();
@@ -153,8 +158,9 @@ describe('AuthService', () => {
         expiresIn: 3600,
         email: 'test@mail.com',
         role: 'USER',
-        tenantId: 't1',
-        tenantName: 'Test',
+        tenantId: 'tenant-1',
+        organizationId: 't1',
+        organizationName: 'Test',
       } satisfies LoginResponse);
 
       expect(service.accessToken).toBe('new-token');

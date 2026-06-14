@@ -5,7 +5,7 @@ import { UserListComponent } from './user-list.component';
 import { mockPage } from '../testing/mock-factories';
 
 function mockUser(overrides?: Partial<import('../../core/models/api.types').UserResponse>): import('../../core/models/api.types').UserResponse {
-  return { id: crypto.randomUUID(), username: 'jperez', email: 'jperez@test.com', role: 'USER', tenantId: 't1', tenantName: 'Test', ...overrides };
+  return { id: crypto.randomUUID(), tenantId: 't1', username: 'jperez', email: 'jperez@test.com', role: 'USER', organizationId: 't1', organizationName: 'Test', ...overrides };
 }
 
 describe('UserListComponent', () => {

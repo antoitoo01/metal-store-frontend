@@ -1,6 +1,6 @@
 # Skill Registry — metal-store-frontend
 
-Generated: 2026-06-07
+Generated: 2026-06-14
 Source: `~/.agents/skills/`
 
 ---
@@ -10,9 +10,9 @@ Source: `~/.agents/skills/`
 - **Angular 22** — Zoneless, Signals, Standalone, OnPush default, Control Flow
 - **Tailwind CSS** — estilos utilitarios
 - **@tanstack/angular-query-experimental** — data fetching con caché, refetch, mutations
-- **Signal Forms (nativos)** + Zod para validación cruzada
-- **Interceptors necesarios**: JWT, X-Tenant-Id, Error (401 → login)
-- **Backend**: Spring Boot 4.0.1, JWT via Supabase Auth, multi-tenancy por tenantId
+- **Signal Forms (nativos)** — sin Zod
+- **Interceptors necesarios**: JWT, X-Organization-Id, Error (401 → login)
+- **Backend**: Spring Boot 4.0.1, JWT via Supabase Auth, multi-org por organizationId
 - **Paginación**: Spring Pageable (`?page=0&size=20&sort=name,asc`)
 - **Endpoints**: `/api/clients`, `/api/catalog/*`, `/api/inventory`, `/api/quotes`, `/api/billing/*`, `/api/users`, `/api/auth/*`
 

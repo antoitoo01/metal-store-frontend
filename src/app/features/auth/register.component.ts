@@ -1,16 +1,30 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { form, FormField, required } from '@angular/forms/signals';
+import { form, FormField, required, email, pattern } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { InputComponent } from '../../shared/components/input/input.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 
+interface PasswordRule {
+  key: string;
+  label: string;
+  test: (v: string) => boolean;
+}
+
+const PASSWORD_RULES: PasswordRule[] = [
+  { key: 'minLength', label: 'Mínimo 8 caracteres', test: (v) => v.length >= 8 },
+  { key: 'uppercase', label: 'Una mayúscula', test: (v) => /[A-Z]/.test(v) },
+  { key: 'lowercase', label: 'Una minúscula', test: (v) => /[a-z]/.test(v) },
+  { key: 'number', label: 'Un número', test: (v) => /\d/.test(v) },
+  { key: 'special', label: 'Un carácter especial', test: (v) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v) },
+];
+
 interface RegisterFormData {
   email: string;
   password: string;
   username: string;
-  tenantName: string;
+  organizationName: string;
 }
 
 @Component({
@@ -44,6 +58,22 @@ interface RegisterFormData {
           [error]="passwordError()"
         />
 
+        <div class="space-y-1">
+          @for (check of passwordChecks(); track check.key) {
+            <p class="flex items-center gap-1.5 text-xs"
+               [class.text-green-600]="check.met"
+               [class.text-red-500]="!check.met && check.hasInput"
+               [class.text-gray-400]="!check.hasInput">
+              @if (check.met) {
+                <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>
+              } @else {
+                <span class="block h-3.5 w-3.5 shrink-0 rounded-full border-2 border-current" aria-hidden="true"></span>
+              }
+              {{ check.label }}
+            </p>
+          }
+        </div>
+
         <app-input
           [formField]="form.username"
           label="Nombre de usuario"
@@ -52,10 +82,10 @@ interface RegisterFormData {
         />
 
         <app-input
-          [formField]="form.tenantName"
-          label="Nombre de la empresa"
+          [formField]="form.organizationName"
+          label="Nombre de la empresa (opcional)"
           placeholder="ej: Aceros del Sur"
-          [error]="tenantNameError()"
+          [error]="organizationNameError()"
         />
 
         <app-button type="submit" variant="primary" size="lg" [block]="true" [disabled]="form().invalid() || loading()" [loading]="loading()">
@@ -81,13 +111,17 @@ export class RegisterComponent {
     email: '',
     password: '',
     username: '',
-    tenantName: '',
+    organizationName: '',
   });
 
   readonly form = form(this.model, (f) => {
-    required(f.email, { message: 'Email válido requerido' });
+    required(f.email, { message: 'Email requerido' });
+    email(f.email, { message: 'Formato de email inválido' });
     required(f.password, { message: 'Contraseña requerida' });
-    required(f.tenantName, { message: 'Nombre de empresa requerido' });
+    pattern(f.password, /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, {
+      message: 'Debe cumplir todos los requisitos de contraseña',
+    });
+
   });
 
   readonly emailError = computed(() => {
@@ -108,10 +142,19 @@ export class RegisterComponent {
     return field.errors()[0]?.message;
   });
 
-  readonly tenantNameError = computed(() => {
-    const field = this.form.tenantName();
+  readonly organizationNameError = computed(() => {
+    const field = this.form.organizationName();
     if (!field.touched()) return undefined;
     return field.errors()[0]?.message;
+  });
+
+  readonly passwordChecks = computed(() => {
+    const value = this.model().password;
+    return PASSWORD_RULES.map(rule => ({
+      ...rule,
+      met: rule.test(value),
+      hasInput: value.length > 0,
+    }));
   });
 
   register(event: Event): void {
@@ -120,11 +163,16 @@ export class RegisterComponent {
 
     this.error.set('');
     this.loading.set(true);
-    this.auth.register(this.model()).subscribe({
+    this.auth.register({
+      email: this.model().email,
+      password: this.model().password,
+      username: this.model().username,
+      tenantName: this.model().organizationName || undefined,
+    }).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
-        this.error.set(err.error?.detail ?? err.error?.message ?? 'Error al registrarse');
+        this.error.set(err.error?.errors?.[0]?.message ?? err.error?.detail ?? err.error?.message ?? 'Error al registrarse');
       },
     });
   }
