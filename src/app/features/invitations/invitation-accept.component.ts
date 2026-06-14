@@ -1,5 +1,5 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { injectMutation } from '@tanstack/angular-query-experimental';
 import { OrganizationService } from '../organization/organization.service';
@@ -9,7 +9,7 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 
 @Component({
   selector: 'app-invitation-accept',
-  imports: [RouterLink, ButtonComponent, BadgeComponent],
+  imports: [RouterLink, ButtonComponent],
   template: `
     <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
       <div class="w-full max-w-md rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900 dark:ring-1 dark:ring-gray-800">
@@ -71,7 +71,6 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 })
 export class InvitationAcceptComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   protected readonly authService = inject(AuthService);
   private readonly organizationService = inject(OrganizationService);
   private readonly notification = inject(NotificationService);
