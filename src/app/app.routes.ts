@@ -5,6 +5,7 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login.component').then((c) => c.LoginComponent) },
   { path: 'register', loadComponent: () => import('./features/auth/register.component').then((c) => c.RegisterComponent) },
+  { path: 'invitations/accept', loadComponent: () => import('./features/invitations/invitation-accept.component').then((c) => c.InvitationAcceptComponent) },
   {
     path: '',
     component: MainLayoutComponent,
@@ -52,6 +53,10 @@ export const routes: Routes = [
         children: [
           { path: '', loadComponent: () => import('./features/users/user-list.component').then((c) => c.UserListComponent) },
         ],
+      },
+      {
+        path: 'organization/invitations',
+        loadComponent: () => import('./features/organization/invitation-list.component').then((c) => c.InvitationListComponent),
       },
       {
         path: 'quotes',

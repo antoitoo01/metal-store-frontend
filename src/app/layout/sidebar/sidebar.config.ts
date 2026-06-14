@@ -36,4 +36,9 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     route: '/users',
     icon: 'user-cog',
   },
+  {
+    label: 'Invitaciones',
+    route: '/organization/invitations',
+    icon: 'user-cog',
+  },
 ];
