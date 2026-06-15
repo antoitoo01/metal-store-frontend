@@ -1,10 +1,63 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CatalogProfile, CatalogFamily, CatalogItem, TypeResponse, CreateTypeRequest, Page } from '../../core/models/api.types';
 
 export interface ImageUploadResponse {
   imageUrl: string;
+}
+
+interface RawProfile {
+  id: string;
+  designation: string;
+  weightKgM: number | null;
+  areaCm2: number | null;
+  imagePath: string | null;
+  familyId: string;
+  familyStandard: string;
+  familyCode: string;
+  familyShapeType: string;
+  familyDescription: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface RawPage<T> {
+  content: T[];
+  page: { size: number; number: number; totalElements: number; totalPages: number };
+}
+
+function toProfile(raw: RawProfile): CatalogProfile {
+  return {
+    id: raw.id,
+    family: {
+      id: raw.familyId,
+      code: raw.familyCode,
+      name: raw.familyDescription,
+      standard: raw.familyStandard,
+      shapeType: raw.familyShapeType,
+    },
+    designation: raw.designation,
+    weightKgM: raw.weightKgM,
+    areaCm2: raw.areaCm2,
+    imagePath: raw.imagePath,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
+}
+
+function flattenPage<T>(raw: RawPage<T>): Page<T> {
+  return {
+    content: raw.content,
+    totalElements: raw.page.totalElements,
+    totalPages: raw.page.totalPages,
+    size: raw.page.size,
+    number: raw.page.number,
+    first: raw.page.number === 0,
+    last: raw.page.number >= raw.page.totalPages - 1,
+    empty: raw.content.length === 0,
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,11 +73,15 @@ export class CatalogService {
     if (shapeType) params = params.set('shapeType', shapeType);
     if (familyCode) params = params.set('familyCode', familyCode);
     if (sort) params = params.set('sort', sort);
-    return this.http.get<Page<CatalogProfile>>(`${this.api}/profiles`, { params });
+    return this.http.get<RawPage<RawProfile>>(`${this.api}/profiles`, { params }).pipe(
+      map(raw => ({ ...flattenPage(raw), content: raw.content.map(toProfile) })),
+    );
   }
 
   getProfile(id: string) {
-    return this.http.get<CatalogProfile>(`${this.api}/profiles/${id}`);
+    return this.http.get<RawProfile>(`${this.api}/profiles/${id}`).pipe(
+      map(raw => toProfile(raw)),
+    );
   }
 
   families(standard?: string) {
@@ -38,7 +95,9 @@ export class CatalogService {
     if (q) params = params.set('q', q);
     if (itemType) params = params.set('itemType', itemType);
     if (sort) params = params.set('sort', sort);
-    return this.http.get<Page<CatalogItem>>(`${this.api}/items`, { params });
+    return this.http.get<RawPage<CatalogItem>>(`${this.api}/items`, { params }).pipe(
+      map(raw => flattenPage(raw)),
+    );
   }
 
   getItem(id: string) {
