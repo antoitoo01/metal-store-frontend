@@ -38,6 +38,8 @@ function invitationBadgeVariant(status: string): BadgeVariant {
         [empty]="(query.data()?.content?.length ?? 0) === 0"
         [error]="query.isError() ? 'Error al cargar invitaciones' : undefined"
         emptyMessage="No hay invitaciones pendientes."
+        [skeleton]="true"
+        (retry)="query.refetch()"
       >
         <div class="overflow-hidden rounded-xl border shadow-sm dark:border-gray-700">
           <table class="w-full text-left text-sm">

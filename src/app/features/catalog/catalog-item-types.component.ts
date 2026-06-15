@@ -28,7 +28,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
         </app-button>
       </form>
 
-      <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
+      <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (t of query.data()?.content; track t.id) {
             <tr>

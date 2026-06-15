@@ -26,6 +26,8 @@
     [error]="query.isError() ? 'Error al cargar clientes' : undefined"
     [empty]="filteredClients().length === 0"
     emptyMessage="No hay clientes que coincidan con los filtros."
+    [skeleton]="true"
+    (retry)="query.refetch()"
   >
     <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
       @for (client of filteredClients(); track client.id) {

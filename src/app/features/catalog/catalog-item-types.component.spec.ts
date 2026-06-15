@@ -11,7 +11,7 @@ describe('CatalogItemTypesComponent', () => {
 
   beforeEach(async () => {
     queryClient = new QueryClient();
-    queryClient.setQueryData(['catalog-item-types'], mockPage([mockType({ name: 'PLATE' }), mockType({ name: 'PROFILE' })]));
+    queryClient.setQueryData(['catalog-item-types', { sort: undefined }], mockPage([mockType({ name: 'PLATE' }), mockType({ name: 'PROFILE' })]));
 
     await TestBed.configureTestingModule({
       imports: [CatalogItemTypesComponent],

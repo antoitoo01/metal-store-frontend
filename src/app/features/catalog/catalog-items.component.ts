@@ -19,7 +19,7 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
         <app-search-input placeholder="Buscar artículo…" (searchChange)="search($event)" />
       </div>
 
-      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar artículos' : undefined" [empty]="query.data()?.content?.length === 0">
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar artículos' : undefined" [empty]="query.data()?.content?.length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (item of query.data()?.content; track item.id) {
             <tr>

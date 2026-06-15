@@ -24,7 +24,7 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
         </select>
       </div>
 
-      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar perfiles' : undefined" [empty]="query.data()?.content?.length === 0">
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar perfiles' : undefined" [empty]="query.data()?.content?.length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (p of query.data()?.content; track p.id) {
             <tr>

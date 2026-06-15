@@ -28,6 +28,10 @@ export class UserService {
     return this.http.get<UserResponse>(`${this.api}/${id}`);
   }
 
+  update(body: { username?: string; email?: string }) {
+    return this.http.put<UserResponse>(`${this.api}/`, body);
+  }
+
   delete(id: string) {
     return this.http.delete<void>(`${this.api}/${id}`);
   }

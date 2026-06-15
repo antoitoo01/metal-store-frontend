@@ -12,6 +12,7 @@ import { InputComponent } from '../../shared/components/input/input.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { TableComponent } from '../../shared/components/table/table.component';
 import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 interface PriceFormData {
@@ -25,7 +26,7 @@ interface PriceFormData {
 
 @Component({
   selector: 'app-price-list',
-  imports: [FormField, ButtonComponent, InputComponent, DataStateComponent, TableComponent, SearchInputComponent, ConfirmDialogComponent],
+  imports: [FormField, ButtonComponent, InputComponent, DataStateComponent, TableComponent, SearchInputComponent, PaginationComponent, ConfirmDialogComponent],
   template: `
     <div>
       <details class="mb-6 rounded-lg border dark:border-gray-700">
@@ -60,9 +61,9 @@ interface PriceFormData {
         <app-search-input placeholder="Buscar precio…" (searchChange)="search($event)" />
       </div>
 
-      <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0">
+      <app-data-state [loading]="query.isPending()" [empty]="query.data()?.content?.length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
-          @for (p of filtered(); track p.id) {
+          @for (p of query.data()?.content ?? []; track p.id) {
             <tr>
           <td class="font-mono text-xs text-gray-600 dark:text-gray-400">{{ p.profileId ?? '—' }}</td>
           <td class="font-mono text-xs text-gray-600 dark:text-gray-400">{{ p.itemId ?? '—' }}</td>
@@ -76,6 +77,10 @@ interface PriceFormData {
             </tr>
           }
         </app-table>
+
+        <div class="mt-4">
+          <app-pagination [currentPage]="query.data()?.number ?? 0" [totalPages]="query.data()?.totalPages ?? 0" (pageChange)="goTo($event)" />
+        </div>
       </app-data-state>
 
       <app-confirm-dialog
@@ -100,8 +105,11 @@ export class PriceListComponent {
 
   private readonly billing = inject(BillingService);
   private readonly notification = inject(NotificationService);
-  readonly q = signal('');
   private readonly queryClient = inject(QueryClient);
+
+  readonly q = signal('');
+  readonly page = signal(0);
+  readonly size = 20;
 
   readonly sortBy = signal('');
   readonly sortDir = signal<'asc' | 'desc'>('asc');
@@ -117,30 +125,26 @@ export class PriceListComponent {
 
   readonly priceForm = form(this.priceModel);
 
-  readonly query = injectQuery<Page<PriceResponse>>(() => ({
-    queryKey: ['prices', { sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
-    queryFn: () => firstValueFrom(this.billing.prices(0, 20, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
-  }));
+  readonly queryKey = computed(() => ['prices', { page: this.page(), size: this.size, q: this.q() || undefined, sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }] as unknown[]);
 
-  readonly filtered = computed(() => {
-    const data = this.query.data()?.content ?? [];
-    const term = this.q().toLowerCase();
-    if (!term) return data;
-    return data.filter(
-      (p) =>
-        (p.profileId ?? '').toLowerCase().includes(term) ||
-        (p.itemId ?? '').toLowerCase().includes(term) ||
-        p.unitPrice.toString().includes(term),
-    );
-  });
+  readonly query = injectQuery<Page<PriceResponse>>(() => ({
+    queryKey: this.queryKey(),
+    queryFn: () => firstValueFrom(this.billing.prices(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+  }));
 
   search(term: string) {
     this.q.set(term);
+    this.page.set(0);
+  }
+
+  goTo(p: number) {
+    this.page.set(p);
   }
 
   onSortChange(sort: SortChange): void {
     this.sortBy.set(sort.column);
     this.sortDir.set(sort.direction);
+    this.page.set(0);
   }
 
   readonly editingId = signal<string | null>(null);
@@ -166,8 +170,8 @@ export class PriceListComponent {
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<PriceResponse> | undefined>(() => ({
     mutationFn: (id) => firstValueFrom(this.billing.deletePrice(id)),
-    onMutate: (id) => optimisticRemoveFromPage<PriceResponse>(this.queryClient, ['prices'], id),
-    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, ['prices'], context); },
+    onMutate: (id) => optimisticRemoveFromPage<PriceResponse>(this.queryClient, this.queryKey(), id),
+    onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
     onSuccess: () => this.notification.success('Precio eliminado correctamente'),
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['prices'] }),
   }));

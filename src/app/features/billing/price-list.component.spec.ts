@@ -11,7 +11,7 @@ describe('PriceListComponent', () => {
 
   beforeEach(async () => {
     queryClient = new QueryClient();
-    queryClient.setQueryData(['prices'], mockPage([mockPrice({ unitPrice: 2.5 }), mockPrice({ unitPrice: 3.75 })]));
+    queryClient.setQueryData(['prices', { page: 0, size: 20, q: undefined, sort: undefined }], mockPage([mockPrice({ unitPrice: 2.5 }), mockPrice({ unitPrice: 3.75 })]));
 
     await TestBed.configureTestingModule({
       imports: [PriceListComponent],

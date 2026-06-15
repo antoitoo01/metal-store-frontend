@@ -57,6 +57,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
 
+      if (err.status === 403 && !req.context.get(SKIP_AUTH_REDIRECT)) {
+        router.navigate(['/forbidden']);
+      }
+
       if (!req.context.get(SKIP_TOAST)) {
         notifications.error(extractErrorMessage(err));
       }

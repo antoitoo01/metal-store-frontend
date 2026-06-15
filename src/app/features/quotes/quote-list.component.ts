@@ -58,7 +58,7 @@ import { ColumnDef, SortChange } from '../../shared/components/table/column-def.
         </div>
       </div>
 
-      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar presupuestos' : undefined" [empty]="filteredQuotes().length === 0">
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar presupuestos' : undefined" [empty]="filteredQuotes().length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (q of filteredQuotes(); track q.id) {
             <tr>

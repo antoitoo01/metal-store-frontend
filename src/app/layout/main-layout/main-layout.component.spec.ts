@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Component } from '@angular/core';
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { MainLayoutComponent } from './main-layout.component';
 
 @Component({ template: '<p>dummy</p>', standalone: true })
@@ -17,6 +18,7 @@ describe('MainLayoutComponent', () => {
           { path: 'dummy', component: DummyComponent },
           { path: '**', component: DummyComponent },
         ]),
+        provideTanStackQuery(new QueryClient()),
       ],
     }).compileComponents();
 

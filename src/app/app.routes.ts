@@ -6,6 +6,7 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login.component').then((c) => c.LoginComponent) },
   { path: 'register', loadComponent: () => import('./features/auth/register.component').then((c) => c.RegisterComponent) },
   { path: 'invitations/accept', loadComponent: () => import('./features/invitations/invitation-accept.component').then((c) => c.InvitationAcceptComponent) },
+  { path: 'forbidden', loadComponent: () => import('./features/errors/forbidden.component').then((c) => c.ForbiddenComponent) },
   {
     path: '',
     component: MainLayoutComponent,
@@ -52,7 +53,12 @@ export const routes: Routes = [
         path: 'users',
         children: [
           { path: '', loadComponent: () => import('./features/users/user-list.component').then((c) => c.UserListComponent) },
+          { path: ':id', loadComponent: () => import('./features/users/user-detail.component').then((c) => c.UserDetailComponent) },
         ],
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/users/profile.component').then((c) => c.ProfileComponent),
       },
       {
         path: 'organization/invitations',
@@ -81,4 +87,5 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: '**', loadComponent: () => import('./features/errors/not-found.component').then((c) => c.NotFoundComponent) },
 ];

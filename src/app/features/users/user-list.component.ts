@@ -1,20 +1,24 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
+import { RouterLink } from '@angular/router';
 import { UserService } from './user.service';
+import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { UserResponse, Page } from '../../core/models/api.types';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { TableComponent } from '../../shared/components/table/table.component';
 import { SearchInputComponent } from '../../shared/components/search-input/search-input.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
 
 @Component({
   selector: 'app-user-list',
-  imports: [PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent, ButtonComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, DataStateComponent, TableComponent, SearchInputComponent, ButtonComponent, BadgeComponent, ConfirmDialogComponent, RouterLink],
   template: `
     <div class="p-6">
       <div class="flex items-center justify-between">
@@ -25,11 +29,16 @@ import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/ser
         <app-search-input placeholder="Buscar usuario…" (searchChange)="search($event)" />
       </div>
 
-      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar usuarios' : undefined" [empty]="query.data()?.content?.length === 0">
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar usuarios' : undefined" [empty]="query.data()?.content?.length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (u of query.data()?.content; track u.id) {
             <tr>
-              <td class="font-medium text-gray-900 dark:text-white">{{ u.username }}</td>
+              <td class="font-medium text-gray-900 dark:text-white">
+                <a [routerLink]="['/users', u.id]" class="hover:text-blue-600 dark:hover:text-blue-400">{{ u.username }}</a>
+                @if (u.id === currentUserId()) {
+                  <app-badge variant="info" size="sm">vos</app-badge>
+                }
+              </td>
               <td class="text-gray-600 dark:text-gray-400">{{ u.email }}</td>
               <td><span class="inline-block rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">{{ u.role }}</span></td>
               <td>
@@ -55,6 +64,10 @@ import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/ser
 export class UserListComponent {
   private readonly userService = inject(UserService);
   private readonly queryClient = inject(QueryClient);
+  private readonly auth = inject(AuthService);
+  private readonly notification = inject(NotificationService);
+
+  protected readonly currentUserId = computed(() => this.auth.user()?.id);
 
   readonly page = signal(0);
   readonly searchQuery = signal('');
@@ -108,10 +121,15 @@ export class UserListComponent {
 
   executeDelete() {
     const target = this.deleteTarget();
-    if (target) {
-      this.deleteMutation.mutate(target.id);
+    if (!target) return;
+    if (target.id === this.currentUserId()) {
+      this.notification.error('No podés eliminarte a vos mismo');
       this.showDeleteDialog.set(false);
       this.deleteTarget.set(null);
+      return;
     }
+    this.deleteMutation.mutate(target.id);
+    this.showDeleteDialog.set(false);
+    this.deleteTarget.set(null);
   }
 }

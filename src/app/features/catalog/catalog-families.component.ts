@@ -17,7 +17,7 @@ import { TableComponent } from '../../shared/components/table/table.component';
         <option value="AISC">AISC</option>
       </select>
 
-      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar familias' : undefined" [empty]="sorted().length === 0">
+      <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar familias' : undefined" [empty]="sorted().length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
           @for (f of sorted(); track f.id) {
             <tr>
