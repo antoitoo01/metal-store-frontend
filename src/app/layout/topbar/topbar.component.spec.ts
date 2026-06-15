@@ -1,21 +1,36 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { AuthService } from '../../core/services/auth.service';
 import { TopbarComponent } from './topbar.component';
 
 describe('TopbarComponent', () => {
   let fixture: ComponentFixture<TopbarComponent>;
-  let authMock: { user: ReturnType<typeof signal>; logout: ReturnType<typeof vi.fn> };
+  let authMock: {
+    user: ReturnType<typeof signal>;
+    organizations: ReturnType<typeof signal>;
+    organizationId: string | null;
+    logout: ReturnType<typeof vi.fn>;
+    switchOrganization: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     authMock = {
-      user: signal({ id: '1', tenantId: 't1', username: 'test', email: 'test@mail.com', role: 'USER', organizationId: 't1', organizationName: 'Test' }),
+      user: signal({ id: '1', tenantId: 't1', username: 'test', email: 'test@mail.com', role: 'USER', organizationId: 't1', organizationName: 'Test', organizations: [] }),
+      organizations: signal([]),
+      organizationId: 't1',
       logout: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+      switchOrganization: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
       imports: [TopbarComponent],
-      providers: [{ provide: AuthService, useValue: authMock }],
+      providers: [
+        { provide: AuthService, useValue: authMock },
+        provideRouter([]),
+        provideTanStackQuery(new QueryClient()),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TopbarComponent);

@@ -6,6 +6,8 @@ export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PAID' | 'CANCELLED';
 
 export type UserRole = 'ADMIN' | 'USER' | 'ORGANIZATION_OWNER' | 'SUPER_ADMIN' | 'WORKER';
 
+export type OrganizationRole = 'OWNER' | 'SUPER_ADMIN' | 'ADMIN' | 'WORKER';
+
 export interface Page<T> {
   content: T[];
   totalElements: number;
@@ -59,6 +61,12 @@ export interface RefreshRequest {
   refreshToken: string;
 }
 
+export interface UserOrganization {
+  organizationId: string;
+  organizationName: string;
+  role: OrganizationRole;
+}
+
 export interface UserResponse {
   id: string;
   tenantId: string;
@@ -67,6 +75,7 @@ export interface UserResponse {
   role: UserRole;
   organizationId: string;
   organizationName: string;
+  organizations: UserOrganization[];
 }
 
 export interface UpdateUserRequest {

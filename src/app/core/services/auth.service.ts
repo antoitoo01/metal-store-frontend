@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { firstValueFrom, Observable, tap } from 'rxjs';
-import type { LoginRequest, LoginResponse, RefreshRequest, RegisterRequest, UserResponse, UserRole } from '../models/api.types';
+import type { LoginRequest, LoginResponse, RefreshRequest, RegisterRequest, UserResponse, UserOrganization, UserRole } from '../models/api.types';
 import { SKIP_TOAST, SKIP_AUTH_REDIRECT } from '../interceptors/error.interceptor';
 import { SKIP_AUTH } from '../interceptors/jwt.interceptor';
 import { environment } from '../../../environments/environment';
@@ -16,6 +16,7 @@ interface StoredAuth {
   tenantId: string;
   organizationId: string;
   organizationName: string;
+  organizations: UserOrganization[];
 }
 
 const STORAGE_KEY = 'metal_store_auth';
@@ -27,6 +28,7 @@ export class AuthService {
 
   readonly user = signal<UserResponse | null>(null);
   readonly isAuthenticated = signal(false);
+  readonly organizations = signal<UserOrganization[]>([]);
 
   #tenantId: string | null = null;
   #organizationId: string | null = null;
@@ -92,8 +94,26 @@ export class AuthService {
     this.#accessToken = null;
     this.isAuthenticated.set(false);
     this.user.set(null);
+    this.organizations.set([]);
     localStorage.removeItem(STORAGE_KEY);
     sessionStorage.removeItem(STORAGE_KEY);
+  }
+
+  switchOrganization(orgId: string): void {
+    const org = this.organizations().find(o => o.organizationId === orgId);
+    if (!org) return;
+    this.#organizationId = orgId;
+    const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const data = JSON.parse(raw) as StoredAuth;
+        data.organizationId = orgId;
+        const isRememberMe = localStorage.getItem(STORAGE_KEY) !== null;
+        this.#saveToStorage(data, isRememberMe);
+      } catch { /* ignore */ }
+    }
+    const u = this.user();
+    if (u) this.user.set({ ...u, organizationId: orgId, organizationName: org.organizationName });
   }
 
   updateTokens(accessToken: string, refreshToken: string): void {
@@ -113,8 +133,13 @@ export class AuthService {
   refreshSession(): Observable<LoginResponse> {
     const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
     let refreshToken = '';
+    let storedOrgs: UserOrganization[] = [];
     if (raw) {
-      try { refreshToken = (JSON.parse(raw) as StoredAuth).refreshToken; } catch { /* ignore */ }
+      try {
+        const parsed = JSON.parse(raw) as StoredAuth;
+        refreshToken = parsed.refreshToken;
+        storedOrgs = parsed.organizations ?? [];
+      } catch { /* ignore */ }
     }
     return this.http.post<LoginResponse>(`${this.apiUrl}/refresh`, { refreshToken } satisfies RefreshRequest, {
       context: new HttpContext().set(SKIP_AUTH, true).set(SKIP_TOAST, true),
@@ -131,6 +156,7 @@ export class AuthService {
           tenantId,
           organizationId: res.organizationId,
           organizationName: res.organizationName,
+          organizations: storedOrgs,
         }, raw ? localStorage.getItem(STORAGE_KEY) !== null : false);
       }),
     );
@@ -159,6 +185,7 @@ export class AuthService {
         role: data.role,
         organizationId: data.organizationId,
         organizationName: data.organizationName,
+        organizations: data.organizations ?? [],
       });
       return true;
     } catch {
@@ -171,6 +198,12 @@ export class AuthService {
     this.isAuthenticated.set(true);
     this.#tenantId = u.tenantId;
     this.#organizationId = u.organizationId;
+    const orgs = u.organizations ?? [];
+    const hasCurrent = orgs.some(o => o.organizationId === u.organizationId);
+    if (!hasCurrent) {
+      orgs.unshift({ organizationId: u.organizationId, organizationName: u.organizationName, role: 'OWNER' as const });
+    }
+    this.organizations.set(orgs);
   }
 
   #handleAuthResponse(res: LoginResponse, rememberMe: boolean): void {
@@ -182,6 +215,7 @@ export class AuthService {
       role: res.role,
       organizationId: res.organizationId,
       organizationName: res.organizationName,
+      organizations: [],
     };
     this.#applyUser(user);
     this.#saveToStorage({
@@ -193,6 +227,7 @@ export class AuthService {
       tenantId: res.tenantId,
       organizationId: res.organizationId,
       organizationName: res.organizationName,
+      organizations: this.organizations(),
     }, rememberMe);
   }
 }
