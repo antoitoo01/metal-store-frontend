@@ -27,9 +27,10 @@ export class BillingService {
     return this.http.put<PriceResponse>(`${this.api}/prices/${id}`, body);
   }
 
-  invoices(page = 0, size = 20, q?: string, sort?: string) {
+  invoices(page = 0, size = 20, q?: string, status?: string, sort?: string) {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
+    if (status) params = params.set('status', status);
     if (sort) params = params.set('sort', sort);
     return this.http.get<Page<InvoiceResponse>>(`${this.api}/invoices`, { params });
   }

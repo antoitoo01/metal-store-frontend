@@ -110,8 +110,6 @@ export class InvoiceListComponent {
     const data = this.query.data()?.content;
     if (!data) return [];
     let result = data;
-    const status = this.statusFilter();
-    if (status) result = result.filter(inv => inv.status === status);
     const from = this.dateFrom();
     if (from) result = result.filter(inv => inv.issueDate >= from);
     const to = this.dateTo();
@@ -121,7 +119,7 @@ export class InvoiceListComponent {
 
   readonly query = injectQuery<Page<InvoiceResponse>>(() => ({
     queryKey: ['invoices', { page: this.page(), q: this.q(), status: this.statusFilter() || undefined, sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
-    queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size, this.q() || undefined, this.statusFilter() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
 
   onSortChange(sort: SortChange): void {

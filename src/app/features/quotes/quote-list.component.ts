@@ -111,8 +111,6 @@ export class QuoteListComponent {
     const data = this.query.data()?.content;
     if (!data) return [];
     let result = data;
-    const status = this.statusFilter();
-    if (status) result = result.filter(q => q.status === status);
     const from = this.dateFrom();
     if (from) result = result.filter(q => q.issueDate >= from);
     const to = this.dateTo();
@@ -122,7 +120,7 @@ export class QuoteListComponent {
 
   readonly query = injectQuery<Page<QuoteResponse>>(() => ({
     queryKey: ['quotes', { page: this.page(), q: this.q(), status: this.statusFilter() || undefined, sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
-    queryFn: () => firstValueFrom(this.quoteService.list(this.page(), this.size, this.q() || undefined, undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    queryFn: () => firstValueFrom(this.quoteService.list(this.page(), this.size, this.q() || undefined, this.statusFilter() || undefined, undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
   }));
 
   onSortChange(sort: SortChange): void {

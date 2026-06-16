@@ -8,9 +8,10 @@ export class QuoteService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/api/quotes`;
 
-  list(page = 0, size = 20, q?: string, clientId?: string, sort?: string) {
+  list(page = 0, size = 20, q?: string, status?: string, clientId?: string, sort?: string) {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
+    if (status) params = params.set('status', status);
     if (clientId) params = params.set('clientId', clientId);
     if (sort) params = params.set('sort', sort);
     return this.http.get<Page<QuoteResponse>>(this.apiUrl, { params });
