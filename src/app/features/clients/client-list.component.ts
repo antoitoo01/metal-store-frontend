@@ -68,6 +68,7 @@ export class ClientListComponent {
     mutationFn: (id) => firstValueFrom(this.clientService.activate(id)),
     onMutate: (id) => optimisticUpdateInPage<ClientResponse>(this.queryClient, this.queryKey(), id, (c) => ({ ...c, status: 'ACTIVE' })),
     onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSuccess: () => this.notification.success('Cliente activado correctamente'),
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
   }));
 
@@ -75,6 +76,7 @@ export class ClientListComponent {
     mutationFn: (id) => firstValueFrom(this.clientService.deactivate(id)),
     onMutate: (id) => optimisticUpdateInPage<ClientResponse>(this.queryClient, this.queryKey(), id, (c) => ({ ...c, status: 'INACTIVE' })),
     onError: (_err, id, context) => { if (context) rollbackPage(this.queryClient, this.queryKey(), context); },
+    onSuccess: () => this.notification.success('Cliente desactivado correctamente'),
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['clients'] }),
   }));
 

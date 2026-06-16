@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
 import { ActivatedRoute } from '@angular/router';
@@ -59,10 +59,10 @@ export class CatalogProfileDetailComponent {
     queryFn: () => firstValueFrom(this.catalog.getProfile(this.id)),
   }));
 
-  readonly imageUrl = () => {
+  readonly imageUrl = computed(() => {
     const p = this.query.data();
     return p?.imagePath ? `${this.catalog.apiUrl}${p.imagePath}` : null;
-  };
+  });
 
   readonly uploadMutation = injectMutation<ImageUploadResponse, Error, File>(() => ({
     mutationFn: (file) => firstValueFrom(this.catalog.uploadProfileImage(this.id, file)),

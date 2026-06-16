@@ -166,7 +166,8 @@ export class InventoryFormComponent {
   readonly itemSearchDebounced = signal('');
   readonly showItemResults = signal(false);
 
-  private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private profileSearchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private itemSearchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly profileSearchQuery = injectQuery<Page<CatalogProfile>>(() => ({
     queryKey: ['catalog-profile-search', this.profileSearchDebounced()],
@@ -212,8 +213,8 @@ export class InventoryFormComponent {
     if (value === '') {
       this.model.set({ ...this.model(), profileId: '' });
     }
-    if (this.searchTimeout) clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
+    if (this.profileSearchTimeout) clearTimeout(this.profileSearchTimeout);
+    this.profileSearchTimeout = setTimeout(() => {
       this.profileSearchDebounced.set(value);
       this.showProfileResults.set(value.length >= 2);
     }, 300);
@@ -237,8 +238,8 @@ export class InventoryFormComponent {
     if (value === '') {
       this.model.set({ ...this.model(), itemId: '' });
     }
-    if (this.searchTimeout) clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
+    if (this.itemSearchTimeout) clearTimeout(this.itemSearchTimeout);
+    this.itemSearchTimeout = setTimeout(() => {
       this.itemSearchDebounced.set(value);
       this.showItemResults.set(value.length >= 2);
     }, 300);
