@@ -65,7 +65,8 @@ export class BreadcrumbComponent {
 
     for (const segment of segments) {
       url += `/${segment}`;
-      const label = BREADCRUMB_MAP[url] ?? segment.charAt(0).toUpperCase() + segment.slice(1);
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+      const label = isUuid ? 'Detalle' : (BREADCRUMB_MAP[url] ?? segment.charAt(0).toUpperCase() + segment.slice(1));
       items.push({ label, url });
     }
 

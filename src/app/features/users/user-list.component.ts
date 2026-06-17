@@ -23,6 +23,9 @@ import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/ser
     <div class="p-6">
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Usuarios</h1>
+        <a routerLink="/organization/invitations" class="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600">
+          Invitar usuario
+        </a>
       </div>
 
       <div class="mt-4">
