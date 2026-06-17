@@ -21,6 +21,7 @@ import { AppIconComponent } from '../app-icon/app-icon.component';
             @for (col of columns(); track col.key) {
               <th
                 scope="col"
+                [attr.aria-sort]="col.sortable ? (sortBy() === col.key ? (sortDir() === 'asc' ? 'ascending' : 'descending') : 'none') : null"
                 class="py-2 px-4 font-medium"
                 [class.cursor-pointer]="col.sortable"
                 [class.select-none]="col.sortable"

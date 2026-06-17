@@ -1,4 +1,4 @@
-import { Component, input, output, effect, computed } from '@angular/core';
+import { Component, input, output, effect, computed, viewChild, ElementRef } from '@angular/core';
 import { ButtonComponent } from '../button/button.component';
 
 @Component({
@@ -14,6 +14,7 @@ import { ButtonComponent } from '../button/button.component';
       (click)="cancelled.emit()">
       <div class="absolute inset-0 bg-black/50"></div>
       <div
+        #dialogRef
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
@@ -44,6 +45,8 @@ export class ConfirmDialogComponent {
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();
 
+  private readonly dialogRef = viewChild<ElementRef<HTMLDivElement>>('dialogRef');
+
   protected readonly confirmVariant = computed(() => {
     const map = { danger: 'danger' as const, warning: 'secondary' as const, default: 'primary' as const };
     return map[this.variant()];
@@ -52,8 +55,18 @@ export class ConfirmDialogComponent {
   constructor() {
     effect((onCleanup) => {
       if (this.visible()) {
+        const el = this.dialogRef()?.nativeElement;
+        const focusable = el?.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const first = focusable?.[0];
+        const last = focusable?.[focusable.length - 1];
+        first?.focus();
+
         const handler = (e: KeyboardEvent) => {
-          if (e.key === 'Escape') this.cancelled.emit();
+          if (e.key === 'Escape') { this.cancelled.emit(); return; }
+          if (e.key === 'Tab' && first && last) {
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+          }
         };
         document.addEventListener('keydown', handler);
         onCleanup(() => document.removeEventListener('keydown', handler));
