@@ -9,6 +9,7 @@ import { CreateClientRequest, ClientResponse } from '../../core/models/api.types
 import { NotificationService } from '../../core/services/notification.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
+import { InputComponent } from '../../shared/components/input/input.component';
 
 interface ClientFormData {
   name: string;
@@ -21,7 +22,7 @@ interface ClientFormData {
 
 @Component({
   selector: 'app-client-form',
-  imports: [FormField, ButtonComponent, BackLinkComponent],
+  imports: [FormField, ButtonComponent, BackLinkComponent, InputComponent],
   templateUrl: './client-form.html',
 })
 export class ClientFormComponent {

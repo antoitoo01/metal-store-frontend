@@ -9,6 +9,7 @@ import { InvoiceResponse } from '../../core/models/api.types';
 import { NotificationService } from '../../core/services/notification.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
+import { InputComponent } from '../../shared/components/input/input.component';
 
 interface InvoiceFormData {
   customerName: string;
@@ -19,7 +20,7 @@ interface InvoiceFormData {
 
 @Component({
   selector: 'app-invoice-form',
-  imports: [FormField, ButtonComponent, BackLinkComponent],
+  imports: [FormField, ButtonComponent, BackLinkComponent, InputComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/billing/invoices" label="Volver a facturas" />
@@ -27,25 +28,27 @@ interface InvoiceFormData {
       <h2 class="mt-2 text-lg font-semibold text-gray-900 dark:text-white">{{ isEdit ? 'Editar factura' : 'Nueva factura' }}</h2>
 
       <form (submit)="save($event)" class="mt-4 max-w-lg space-y-4">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="customerName">Cliente</label>
-          <input id="customerName" [formField]="form.customerName" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" />
-        </div>
+        <app-input
+          id="customerName"
+          [formField]="form.customerName"
+          label="Cliente"
+        />
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="customerVat">CIF / NIF</label>
-          <input id="customerVat" [formField]="form.customerVat" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" />
-        </div>
+        <app-input
+          [formField]="form.customerVat"
+          label="CIF / NIF"
+        />
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="customerAddress">Dirección</label>
-          <input id="customerAddress" [formField]="form.customerAddress" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600" />
-        </div>
+        <app-input
+          [formField]="form.customerAddress"
+          label="Dirección"
+        />
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="notes">Notas</label>
-          <textarea id="notes" [formField]="form.notes" rows="3" class="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500 dark:border-gray-600"></textarea>
-        </div>
+        <app-input
+          variant="textarea"
+          [formField]="form.notes"
+          label="Notas"
+        />
 
         <app-button type="submit" [disabled]="saveMutation.isPending() || saveMutation.isSuccess()">
           {{ saveMutation.isPending() ? 'Guardando…' : (isEdit ? 'Guardar cambios' : 'Crear factura') }}

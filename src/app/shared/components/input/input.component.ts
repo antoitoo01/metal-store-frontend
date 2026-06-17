@@ -13,6 +13,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
         @case ('select') {
           <select
             #inputRef
+            [id]="id()"
             [disabled]="isDisabled()"
             (change)="onChangeEvent($event)"
             (blur)="onBlur()"
@@ -23,6 +24,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
         @case ('textarea') {
           <textarea
             #inputRef
+            [id]="id()"
             [placeholder]="placeholder()"
             [disabled]="isDisabled()"
             (input)="onInput($event)"
@@ -34,6 +36,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
           <div class="relative">
             <input
               #inputRef
+              [id]="id()"
               [type]="effectiveType()"
               [placeholder]="placeholder()"
               [disabled]="isDisabled()"
@@ -72,6 +75,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
   ],
 })
 export class InputComponent implements ControlValueAccessor {
+  readonly id = input<string>();
   readonly label = input<string>();
   readonly placeholder = input<string>('');
   readonly type = input<string>('text');
