@@ -7,7 +7,7 @@ import { ButtonComponent } from '../button/button.component';
   template: `
     <div class="flex flex-col items-center gap-3">
       @if (imageUrl()) {
-        <img [src]="imageUrl()" alt="Imagen" class="max-h-48 rounded-lg object-contain" />
+        <img [src]="imageUrl()" alt="Imagen del catálogo" loading="lazy" class="max-h-48 rounded-lg object-contain" />
       } @else {
         <div class="flex h-48 w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
           <span class="text-sm text-gray-400 dark:text-gray-500">Sin imagen</span>

@@ -12,6 +12,7 @@ import { Component, input, output, signal, viewChild, ElementRef } from '@angula
       <input
         #searchInput
         type="text"
+        [attr.aria-label]="placeholder()"
         [placeholder]="placeholder()"
         (input)="onInput($event)"
         class="block w-full rounded-lg border border-gray-300 px-3 py-2 pl-10 pr-8 text-sm shadow-sm placeholder:text-gray-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500 dark:border-gray-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-gray-500"

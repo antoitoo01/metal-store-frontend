@@ -7,6 +7,7 @@ export const routes: Routes = [
   { path: 'register', loadComponent: () => import('./features/auth/register.component').then((c) => c.RegisterComponent) },
   { path: 'invitations/accept', loadComponent: () => import('./features/invitations/invitation-accept.component').then((c) => c.InvitationAcceptComponent) },
   { path: 'forbidden', loadComponent: () => import('./features/errors/forbidden.component').then((c) => c.ForbiddenComponent) },
+  { path: 'server-error', loadComponent: () => import('./features/errors/server-error.component').then((c) => c.ServerErrorComponent) },
   {
     path: '',
     component: MainLayoutComponent,
