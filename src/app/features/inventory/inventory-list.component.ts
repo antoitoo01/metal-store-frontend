@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
+import { injectQuery, injectMutation, QueryClient, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { InventoryItemResponse, Page } from '../../core/models/api.types';
@@ -90,6 +90,8 @@ export class InventoryListComponent {
   readonly query = injectQuery<Page<InventoryItemResponse>>(() => ({
     queryKey: this.queryKey(),
     queryFn: () => firstValueFrom(this.inventory.list(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<InventoryItemResponse> | undefined>(() => ({

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
+import { injectQuery, injectMutation, QueryClient, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { ClientService } from './client.service';
 import { ClientResponse, Page } from '../../core/models/api.types';
@@ -54,6 +54,8 @@ export class ClientListComponent {
   readonly query = injectQuery<Page<ClientResponse>>(() => ({
     queryKey: this.queryKey(),
     queryFn: () => firstValueFrom(this.clientService.list(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<ClientResponse> | undefined>(() => ({

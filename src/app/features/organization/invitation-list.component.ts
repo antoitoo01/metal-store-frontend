@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
+import { injectQuery, injectMutation, QueryClient, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { OrganizationService } from './organization.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -30,9 +31,15 @@ function invitationBadgeVariant(status: string): BadgeVariant {
 
 @Component({
   selector: 'app-invitation-list',
-  imports: [DatePipe, ButtonComponent, BadgeComponent, PaginationComponent, DataStateComponent, ConfirmDialogComponent],
+  imports: [DatePipe, RouterLink, ButtonComponent, BadgeComponent, PaginationComponent, DataStateComponent, ConfirmDialogComponent],
   template: `
     <div>
+      <div class="mb-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Invitaciones</h1>
+        <a routerLink="/organization/invitations/new" class="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600">
+          Nueva invitación
+        </a>
+      </div>
       <app-data-state
         [loading]="query.isLoading()"
         [empty]="(query.data()?.content?.length ?? 0) === 0"
@@ -118,6 +125,8 @@ export class InvitationListComponent {
       return firstValueFrom(this.organizationService.listInvitations(orgId, this.page(), this.size));
     },
     enabled: () => this.queryKey().length > 0,
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   readonly cancelMutation = injectMutation<void, Error, string, PageData<InvitationResponse> | undefined>(() => ({

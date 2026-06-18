@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
+import { injectQuery, injectMutation, QueryClient, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { UserService } from './user.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -90,6 +90,8 @@ export class UserListComponent {
   readonly query = injectQuery<Page<UserResponse>>(() => ({
     queryKey: ['users', { page: this.page(), q: this.searchQuery(), sort: this.sortParam() }],
     queryFn: () => firstValueFrom(this.userService.list({ page: this.page(), q: this.searchQuery(), sort: this.sortParam() })),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   readonly deleteMutation = injectMutation<void, Error, string, PageData<UserResponse> | undefined>(() => ({

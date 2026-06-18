@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery, injectMutation, QueryClient } from '@tanstack/angular-query-experimental';
+import { injectQuery, injectMutation, QueryClient, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { form, FormField } from '@angular/forms/signals';
 import { BillingService } from './billing.service';
 import { ColumnDef, SortChange } from '../../shared/components/table/column-def.type';
@@ -130,6 +130,8 @@ export class PriceListComponent {
   readonly query = injectQuery<Page<PriceResponse>>(() => ({
     queryKey: this.queryKey(),
     queryFn: () => firstValueFrom(this.billing.prices(this.page(), this.size, this.q() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   search(term: string) {

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery } from '@tanstack/angular-query-experimental';
+import { injectQuery, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { QuoteService } from './quote.service';
 import { QuoteResponse, Page } from '../../core/models/api.types';
@@ -121,6 +121,8 @@ export class QuoteListComponent {
   readonly query = injectQuery<Page<QuoteResponse>>(() => ({
     queryKey: ['quotes', { page: this.page(), q: this.q(), status: this.statusFilter() || undefined, sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
     queryFn: () => firstValueFrom(this.quoteService.list(this.page(), this.size, this.q() || undefined, this.statusFilter() || undefined, undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   onSortChange(sort: SortChange): void {

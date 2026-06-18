@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { injectQuery } from '@tanstack/angular-query-experimental';
+import { injectQuery, keepPreviousData } from '@tanstack/angular-query-experimental';
 import { RouterLink } from '@angular/router';
 import { BillingService } from './billing.service';
 import { InvoiceResponse, Page } from '../../core/models/api.types';
@@ -120,6 +120,8 @@ export class InvoiceListComponent {
   readonly query = injectQuery<Page<InvoiceResponse>>(() => ({
     queryKey: ['invoices', { page: this.page(), q: this.q(), status: this.statusFilter() || undefined, sort: this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined }],
     queryFn: () => firstValueFrom(this.billing.invoices(this.page(), this.size, this.q() || undefined, this.statusFilter() || undefined, this.sortBy() ? `${this.sortBy()},${this.sortDir()}` : undefined)),
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
   }));
 
   onSortChange(sort: SortChange): void {

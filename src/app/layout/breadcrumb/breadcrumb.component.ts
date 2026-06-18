@@ -25,6 +25,10 @@ const BREADCRUMB_MAP: Record<string, string> = {
   '/billing/invoices': 'Facturas',
   '/billing/invoices/new': 'Nueva factura',
   '/billing/prices': 'Precios',
+  '/users': 'Usuarios',
+  '/profile': 'Mi perfil',
+  '/organization/invitations': 'Invitaciones',
+  '/organization/invitations/new': 'Nueva invitación',
 };
 
 @Component({

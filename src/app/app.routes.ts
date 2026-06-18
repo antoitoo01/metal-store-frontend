@@ -62,7 +62,10 @@ export const routes: Routes = [
       },
       {
         path: 'organization/invitations',
-        loadComponent: () => import('./features/organization/invitation-list.component').then((c) => c.InvitationListComponent),
+        children: [
+          { path: '', loadComponent: () => import('./features/organization/invitation-list.component').then((c) => c.InvitationListComponent) },
+          { path: 'new', loadComponent: () => import('./features/organization/invitation-form.component').then((c) => c.InvitationFormComponent) },
+        ],
       },
       {
         path: 'quotes',
