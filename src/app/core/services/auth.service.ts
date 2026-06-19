@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
-import { firstValueFrom, Observable, tap } from 'rxjs';
+import { firstValueFrom, Observable, of, tap, catchError } from 'rxjs';
 import type { LoginRequest, LoginResponse, RefreshRequest, RegisterRequest, UserResponse, UserOrganization, UserRole } from '../models/api.types';
 import { SKIP_TOAST, SKIP_AUTH_REDIRECT } from '../interceptors/error.interceptor';
 import { SKIP_AUTH } from '../interceptors/jwt.interceptor';
@@ -84,7 +84,8 @@ export class AuthService {
 
   logout(): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/logout`, {}).pipe(
-      tap(() => this.clearAuth()),
+      tap({ next: () => this.clearAuth(), error: () => this.clearAuth() }),
+      catchError(() => of(undefined as void)),
     );
   }
 

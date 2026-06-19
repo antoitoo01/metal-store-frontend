@@ -2,7 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTanStackQuery, QueryClient } from '@tanstack/angular-query-experimental';
 import { DashboardComponent } from './dashboard.component';
-import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardService, DashboardData } from '../../core/services/dashboard.service';
 import { QuoteService } from '../../features/quotes/quote.service';
 import { BillingService } from '../../features/billing/billing.service';
 import { QuoteResponse, InvoiceResponse } from '../../core/models/api.types';
@@ -15,6 +15,18 @@ function invoice(overrides?: Partial<InvoiceResponse>): InvoiceResponse {
   return { id: '1', invoiceNumber: 'FAC-001', organizationId: '', customerName: 'Test', customerVat: null, customerAddress: null, issueDate: '2026-06-01', dueDate: null, status: 'ISSUED', subtotal: 100, vatTotal: 21, total: 121, notes: null, ...overrides };
 }
 
+function dashboardData(overrides?: Partial<DashboardData>): DashboardData {
+  return {
+    clientCount: 42,
+    inventoryCount: 17,
+    quoteCount: 8,
+    invoiceCount: 23,
+    recentQuotes: [quote()],
+    recentInvoices: [invoice()],
+    ...overrides,
+  };
+}
+
 describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let queryClient: QueryClient;
@@ -22,12 +34,7 @@ describe('DashboardComponent', () => {
   beforeEach(async () => {
     queryClient = new QueryClient();
 
-    queryClient.setQueryData(['dashboard/clients'], 42);
-    queryClient.setQueryData(['dashboard/inventory'], 17);
-    queryClient.setQueryData(['dashboard/quotes'], 8);
-    queryClient.setQueryData(['dashboard/invoices'], 23);
-    queryClient.setQueryData(['dashboard/recent-quotes'], [quote()]);
-    queryClient.setQueryData(['dashboard/recent-invoices'], [invoice()]);
+    queryClient.setQueryData(['dashboard'], dashboardData());
 
     await TestBed.configureTestingModule({
       imports: [DashboardComponent],

@@ -19,6 +19,7 @@
         <option value="INACTIVE">Inactivo</option>
       </select>
     </div>
+    <app-button variant="secondary" size="sm" (clicked)="exportToCsv()" [disabled]="filteredClients().length === 0">Exportar CSV</app-button>
   </div>
 
   <app-data-state
@@ -43,9 +44,9 @@
           <td class="text-right">
             <div class="flex items-center justify-end gap-1">
               @if (client.status === 'ACTIVE') {
-                <app-button variant="ghost" size="sm" (clicked)="deactivateMutation.mutate(client.id)">Desactivar</app-button>
+                <app-button variant="ghost" size="sm" (clicked)="confirmDeactivate(client)">Desactivar</app-button>
               } @else {
-                <app-button variant="ghost" size="sm" (clicked)="activateMutation.mutate(client.id)">Activar</app-button>
+                <app-button variant="ghost" size="sm" (clicked)="confirmActivate(client)">Activar</app-button>
               }
               <app-button variant="ghost" size="sm" (clicked)="confirmDelete(client)">Eliminar</app-button>
             </div>
@@ -66,4 +67,22 @@
     variant="danger"
     (confirmed)="executeDelete()"
     (cancelled)="showDeleteDialog.set(false)" />
+
+  <app-confirm-dialog
+    [visible]="showActivateDialog()"
+    title="Activar cliente"
+    [message]="'¿Estás seguro de que querés activar a ' + (activateTarget?.name ?? '') + '?'"
+    variant="default"
+    confirmLabel="Activar"
+    (confirmed)="executeActivate()"
+    (cancelled)="showActivateDialog.set(false)" />
+
+  <app-confirm-dialog
+    [visible]="showDeactivateDialog()"
+    title="Desactivar cliente"
+    [message]="'¿Estás seguro de que querés desactivar a ' + (deactivateTarget?.name ?? '') + '?'"
+    variant="warning"
+    confirmLabel="Desactivar"
+    (confirmed)="executeDeactivate()"
+    (cancelled)="showDeactivateDialog.set(false)" />
 </div>

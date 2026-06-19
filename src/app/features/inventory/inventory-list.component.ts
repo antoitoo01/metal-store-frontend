@@ -7,6 +7,7 @@ import { InventoryService } from './inventory.service';
 import { InventoryItemResponse, Page } from '../../core/models/api.types';
 import { NotificationService } from '../../core/services/notification.service';
 import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/services/optimistic-utils';
+import { exportCsv } from '../../core/services/csv-export';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
@@ -26,11 +27,32 @@ import { ColumnDef, SortChange } from '../../shared/components/table/column-def.
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Nuevo</a>
       </div>
 
-      <app-search-input placeholder="Buscar…" (searchChange)="search($event)" />
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <app-search-input placeholder="Buscar…" (searchChange)="search($event)" />
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 dark:text-gray-400">Desde:</label>
+          <input
+            type="date"
+            [value]="dateFrom()"
+            (change)="setDateFrom($any($event.target).value)"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600 dark:text-gray-400">Hasta:</label>
+          <input
+            type="date"
+            [value]="dateTo()"
+            (change)="setDateTo($any($event.target).value)"
+            class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <app-button variant="secondary" size="sm" (clicked)="exportToCsv()" [disabled]="filteredItems().length === 0">Exportar CSV</app-button>
+      </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar inventario' : undefined" [empty]="query.data()?.content?.length === 0" [skeleton]="true" (retry)="query.refetch()">
         <app-table [columns]="columnDefs" [sortBy]="sortBy()" [sortDir]="sortDir()" (sortChange)="onSortChange($event)">
-          @for (item of query.data()?.content; track item.id) {
+          @for (item of filteredItems(); track item.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ item.quantity }}</td>
               <td class="text-gray-600 dark:text-gray-400">{{ item.location ?? '—' }}</td>
@@ -71,6 +93,8 @@ export class InventoryListComponent {
   readonly q = signal('');
   readonly page = signal(0);
   readonly size = 20;
+  readonly dateFrom = signal('');
+  readonly dateTo = signal('');
 
   readonly sortBy = signal('');
   readonly sortDir = signal<'asc' | 'desc'>('asc');
@@ -102,6 +126,17 @@ export class InventoryListComponent {
     onSettled: () => this.queryClient.invalidateQueries({ queryKey: ['inventory'] }),
   }));
 
+  protected readonly filteredItems = computed(() => {
+    const data = this.query.data()?.content;
+    if (!data) return [];
+    let result = data;
+    const from = this.dateFrom();
+    if (from) result = result.filter((item) => item.receivedAt >= from);
+    const to = this.dateTo();
+    if (to) result = result.filter((item) => item.receivedAt <= to);
+    return result;
+  });
+
   onSortChange(sort: SortChange): void {
     this.sortBy.set(sort.column);
     this.sortDir.set(sort.direction);
@@ -113,6 +148,16 @@ export class InventoryListComponent {
 
   search(term: string) {
     this.q.set(term);
+    this.page.set(0);
+  }
+
+  setDateFrom(value: string): void {
+    this.dateFrom.set(value);
+    this.page.set(0);
+  }
+
+  setDateTo(value: string): void {
+    this.dateTo.set(value);
     this.page.set(0);
   }
 
@@ -128,5 +173,17 @@ export class InventoryListComponent {
   executeDelete() {
     this.deleteMutation.mutate(this.deleteTarget);
     this.showDeleteDialog.set(false);
+  }
+
+  protected exportToCsv(): void {
+    const items = this.filteredItems();
+    exportCsv('inventario', ['Cantidad', 'Ubicación', 'Proveedor', 'Coste (€)', 'Recibido', 'Notas'], items.map((item) => [
+      item.quantity,
+      item.location,
+      item.supplier,
+      item.costPriceEur,
+      item.receivedAt,
+      item.notes,
+    ]));
   }
 }

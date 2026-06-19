@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { ClientService } from './client.service';
 import { ClientResponse, Page } from '../../core/models/api.types';
 import { PageData, optimisticRemoveFromPage, optimisticUpdateInPage, rollbackPage } from '../../core/services/optimistic-utils';
+import { exportCsv } from '../../core/services/csv-export';
 import { NotificationService } from '../../core/services/notification.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
@@ -105,6 +106,12 @@ export class ClientListComponent {
   readonly showDeleteDialog = signal(false);
   protected deleteTarget: ClientResponse | null = null;
 
+  readonly showActivateDialog = signal(false);
+  protected activateTarget: ClientResponse | null = null;
+
+  readonly showDeactivateDialog = signal(false);
+  protected deactivateTarget: ClientResponse | null = null;
+
   confirmDelete(client: ClientResponse) {
     this.deleteTarget = client;
     this.showDeleteDialog.set(true);
@@ -116,5 +123,38 @@ export class ClientListComponent {
     }
     this.showDeleteDialog.set(false);
     this.deleteTarget = null;
+  }
+
+  confirmActivate(client: ClientResponse) {
+    this.activateTarget = client;
+    this.showActivateDialog.set(true);
+  }
+
+  executeActivate() {
+    if (this.activateTarget) {
+      this.activateMutation.mutate(this.activateTarget.id);
+    }
+    this.showActivateDialog.set(false);
+    this.activateTarget = null;
+  }
+
+  confirmDeactivate(client: ClientResponse) {
+    this.deactivateTarget = client;
+    this.showDeactivateDialog.set(true);
+  }
+
+  executeDeactivate() {
+    if (this.deactivateTarget) {
+      this.deactivateMutation.mutate(this.deactivateTarget.id);
+    }
+    this.showDeactivateDialog.set(false);
+    this.deactivateTarget = null;
+  }
+
+  protected exportToCsv(): void {
+    const clients = this.filteredClients();
+    exportCsv('clientes', ['Nombre', 'Email', 'CIF/NIF', 'Estado'], clients.map((c) => [
+      c.name, c.email, c.vatNumber, c.status === 'ACTIVE' ? 'Activo' : 'Inactivo',
+    ]));
   }
 }

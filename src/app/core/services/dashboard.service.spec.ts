@@ -6,8 +6,8 @@ import { QuoteService } from '../../features/quotes/quote.service';
 import { BillingService } from '../../features/billing/billing.service';
 import { of } from 'rxjs';
 
-function page(totalElements: number) {
-  return { content: [], totalElements, totalPages: 1, size: 1, number: 0, first: true, last: true, empty: totalElements === 0 };
+function page(totalElements: number, content: unknown[] = []) {
+  return { content, totalElements, totalPages: 1, size: 1, number: 0, first: true, last: true, empty: totalElements === 0 };
 }
 
 describe('DashboardService', () => {
@@ -40,31 +40,28 @@ describe('DashboardService', () => {
     billingService.invoices.mockReturnValue(of(page(23)));
   });
 
-  it('returns client count from totalElements', () => {
-    service.getClientCount().subscribe((count) => {
-      expect(count).toBe(42);
-    });
+  it('returns combined dashboard data from all services', async () => {
+    const data = await service.getDashboardData();
+    expect(data.clientCount).toBe(42);
+    expect(data.inventoryCount).toBe(17);
+    expect(data.quoteCount).toBe(8);
+    expect(data.invoiceCount).toBe(23);
     expect(clientService.list).toHaveBeenCalledWith(0, 1);
-  });
-
-  it('returns inventory count from totalElements', () => {
-    service.getInventoryCount().subscribe((count) => {
-      expect(count).toBe(17);
-    });
     expect(inventoryService.list).toHaveBeenCalledWith(0, 1);
+    expect(quoteService.list).toHaveBeenCalledWith(0, 5);
+    expect(billingService.invoices).toHaveBeenCalledWith(0, 5);
   });
 
-  it('returns quote count from totalElements', () => {
-    service.getQuoteCount().subscribe((count) => {
-      expect(count).toBe(8);
-    });
-    expect(quoteService.list).toHaveBeenCalledWith(0, 1);
-  });
+  it('extracts recent quotes and invoices from content', async () => {
+    const mockQuote = { id: 'q1', quoteNumber: 'PRES-001' } as any;
+    const mockInvoice = { id: 'i1', invoiceNumber: 'FAC-001' } as any;
+    clientService.list.mockReturnValue(of(page(0)));
+    inventoryService.list.mockReturnValue(of(page(0)));
+    quoteService.list.mockReturnValue(of(page(1, [mockQuote])));
+    billingService.invoices.mockReturnValue(of(page(1, [mockInvoice])));
 
-  it('returns invoice count from totalElements', () => {
-    service.getInvoiceCount().subscribe((count) => {
-      expect(count).toBe(23);
-    });
-    expect(billingService.invoices).toHaveBeenCalledWith(0, 1);
+    const data = await service.getDashboardData();
+    expect(data.recentQuotes).toEqual([mockQuote]);
+    expect(data.recentInvoices).toEqual([mockInvoice]);
   });
 });
