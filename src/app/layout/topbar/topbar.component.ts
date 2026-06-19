@@ -1,6 +1,9 @@
 import { Component, inject, output, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { injectQueryClient } from '@tanstack/angular-query-experimental';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { injectQuery, injectQueryClient } from '@tanstack/angular-query-experimental';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { AppIconComponent } from '../../shared/components/app-icon/app-icon.component';
@@ -64,6 +67,13 @@ import { AppIconComponent } from '../../shared/components/app-icon/app-icon.comp
             {{ orgs()[0].organizationName }}
           </span>
         }
+        @if (healthQuery.isError()) {
+          <span class="inline-block h-2 w-2 rounded-full bg-red-500" title="Servidor no disponible"></span>
+        } @else if (healthQuery.isSuccess()) {
+          <span class="inline-block h-2 w-2 rounded-full bg-green-500" title="Servidor disponible"></span>
+        } @else {
+          <span class="inline-block h-2 w-2 rounded-full bg-yellow-500" title="Verificando…"></span>
+        }
         <button
           (click)="theme.toggle()"
           class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
@@ -92,6 +102,15 @@ export class TopbarComponent {
   protected readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly queryClient = injectQueryClient();
+  private readonly http = inject(HttpClient);
+
+  readonly healthQuery = injectQuery(() => ({
+    queryKey: ['health'],
+    queryFn: () => firstValueFrom(this.http.get<{ status: string }>(`${environment.apiUrl}/api/health`)),
+    refetchInterval: 60_000,
+    staleTime: 30_000,
+    retry: false,
+  }));
 
   readonly toggleMenu = output<void>();
   readonly showOrgMenu = signal(false);
