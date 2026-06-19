@@ -12,7 +12,7 @@ import { BackLinkComponent } from '../../shared/components/back-link/back-link.c
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { QuoteStatusActionsComponent } from './quote-status-actions.component';
-import { OrderLinesComponent, CreateOrderLineItem, SearchResultItem } from '../../shared/components/order-lines/order-lines.component';
+import { OrderLinesComponent, OrderLineItem, CreateOrderLineItem, SearchResultItem } from '../../shared/components/order-lines/order-lines.component';
 import { ColumnDef } from '../../shared/components/table/column-def.type';
 
 @Component({
@@ -142,9 +142,9 @@ export class QuoteDetailComponent {
 
   readonly showCancelDialog = signal(false);
 
-  readonly addLine = (body: CreateOrderLineItem) => this.quoteService.addLine(this.id, body as CreateQuoteLineRequest) as unknown as Observable<never>;
+  readonly addLine = (body: CreateOrderLineItem) => this.quoteService.addLine(this.id, body as CreateQuoteLineRequest) as Observable<OrderLineItem>;
   readonly removeLine = (lineId: string) => this.quoteService.removeLine(this.id, lineId);
-  readonly searchProfiles = (q: string) => this.catalog.searchProfiles(q) as unknown as Observable<Page<SearchResultItem>>;
+  readonly searchProfiles = (q: string) => this.catalog.searchProfiles(q) as Observable<Page<SearchResultItem>>;
   readonly onSelectProfile = (item: SearchResultItem) => ({ description: item.designation, profileId: item.id, quantity: 1, unitPrice: 0, vatRate: 21 } as CreateOrderLineItem);
   readonly invalidateKeys: string[][] = [['quote-lines', this.id], ['quote', this.id], ['quotes']];
 

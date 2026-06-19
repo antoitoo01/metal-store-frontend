@@ -12,7 +12,7 @@ import { BackLinkComponent } from '../../shared/components/back-link/back-link.c
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { InvoiceStatusActionsComponent } from './invoice-status-actions.component';
-import { OrderLinesComponent, CreateOrderLineItem, SearchResultItem } from '../../shared/components/order-lines/order-lines.component';
+import { OrderLinesComponent, OrderLineItem, CreateOrderLineItem, SearchResultItem } from '../../shared/components/order-lines/order-lines.component';
 import { ColumnDef } from '../../shared/components/table/column-def.type';
 
 @Component({
@@ -141,9 +141,9 @@ export class InvoiceDetailComponent {
 
   readonly showCancelDialog = signal(false);
 
-  readonly addLine = (body: CreateOrderLineItem) => this.billing.addInvoiceLine(this.id, body as CreateInvoiceLineRequest) as unknown as Observable<never>;
+  readonly addLine = (body: CreateOrderLineItem) => this.billing.addInvoiceLine(this.id, body as CreateInvoiceLineRequest) as Observable<OrderLineItem>;
   readonly removeLine = (lineId: string) => this.billing.removeInvoiceLine(this.id, lineId);
-  readonly searchItems = (q: string) => this.catalog.searchItems(q) as unknown as Observable<Page<SearchResultItem>>;
+  readonly searchItems = (q: string) => this.catalog.searchItems(q) as Observable<Page<SearchResultItem>>;
   readonly onSelectItem = (item: SearchResultItem) => ({ description: item.designation, itemId: item.id, quantity: 1, unitPrice: 0, vatRate: 21 } as CreateOrderLineItem);
   readonly invalidateKeys: string[][] = [['invoice-lines', this.id], ['invoice', this.id], ['invoices']];
 
