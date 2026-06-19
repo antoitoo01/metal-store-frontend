@@ -4,6 +4,8 @@ import { injectQuery, keepPreviousData } from '@tanstack/angular-query-experimen
 import { RouterLink } from '@angular/router';
 import { BillingService } from './billing.service';
 import { InvoiceResponse, Page } from '../../core/models/api.types';
+import { exportCsv } from '../../core/services/csv-export';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
@@ -13,7 +15,7 @@ import { ColumnDef, SortChange } from '../../shared/components/table/column-def.
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [RouterLink, PaginationComponent, StatusBadgeComponent, DataStateComponent, TableComponent, SearchInputComponent],
+  imports: [RouterLink, ButtonComponent, PaginationComponent, StatusBadgeComponent, DataStateComponent, TableComponent, SearchInputComponent],
   template: `
     <div>
       <div class="flex items-center justify-between">
@@ -55,6 +57,7 @@ import { ColumnDef, SortChange } from '../../shared/components/table/column-def.
             class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white"
           />
         </div>
+        <app-button variant="secondary" size="sm" (clicked)="exportToCsv()" [disabled]="filteredInvoices().length === 0">Exportar CSV</app-button>
       </div>
 
       <app-data-state [loading]="query.isPending()" [error]="query.isError() ? 'Error al cargar facturas' : undefined" [empty]="filteredInvoices().length === 0" [skeleton]="true" (retry)="query.refetch()">
@@ -152,5 +155,12 @@ export class InvoiceListComponent {
 
   goTo(p: number) {
     this.page.set(p);
+  }
+
+  protected exportToCsv(): void {
+    const invoices = this.filteredInvoices();
+    exportCsv('facturas', ['Número', 'Cliente', 'Fecha', 'Vencimiento', 'Total', 'Estado'], invoices.map((inv) => [
+      inv.invoiceNumber, inv.customerName, inv.issueDate, inv.dueDate, inv.total, inv.status,
+    ]));
   }
 }
