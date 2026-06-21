@@ -37,7 +37,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
               refreshComplete = null;
               auth.clearAuth();
               if (!req.context.get(SKIP_AUTH_REDIRECT)) {
-                router.navigate(['/login']);
+                auth.sessionExpired.set(true);
               }
               return throwError(() => err);
             }),
@@ -53,7 +53,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (err.status === 401) {
         auth.clearAuth();
         if (!req.context.get(SKIP_AUTH_REDIRECT)) {
-          router.navigate(['/login']);
+          auth.sessionExpired.set(true);
         }
       }
 

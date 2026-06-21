@@ -9,12 +9,13 @@ import { credentialsInterceptor } from './core/interceptors/credentials.intercep
 import { organizationInterceptor } from './core/interceptors/organization.interceptor';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { httpLoggingInterceptor } from './core/interceptors/http-logging.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([errorInterceptor, jwtInterceptor, organizationInterceptor, credentialsInterceptor])),
+    provideHttpClient(withInterceptors([errorInterceptor, jwtInterceptor, httpLoggingInterceptor, organizationInterceptor, credentialsInterceptor])),
     provideTanStackQuery(new QueryClient()),
     provideAppInitializer(() => {
       const auth = inject(AuthService);

@@ -1,10 +1,13 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect, DestroyRef } from '@angular/core';
 import { form, FormField, required, email, pattern } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../users/user.service';
 import { InputComponent } from '../../shared/components/input/input.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { createUniquenessValidator } from '../../core/utils/uniqueness-validator';
 
 interface PasswordRule {
   key: string;
@@ -80,6 +83,11 @@ interface RegisterFormData {
           placeholder="ej: metalero89"
           [error]="usernameError()"
         />
+        @if (usernameValidator.checking()) {
+          <p class="-mt-4 text-xs text-gray-400">Verificando disponibilidad...</p>
+        } @else if (usernameAvailable()) {
+          <p class="-mt-4 text-xs text-green-600">Disponible</p>
+        }
 
         <app-input
           [formField]="form.organizationName"
@@ -103,6 +111,8 @@ interface RegisterFormData {
 export class RegisterComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly userService = inject(UserService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly error = signal('');
   readonly loading = signal(false);
@@ -124,6 +134,11 @@ export class RegisterComponent {
 
   });
 
+  readonly usernameValidator = createUniquenessValidator({
+    checkFn: (value) => this.userService.checkAvailability('username', value),
+    fieldLabel: 'username',
+  }, this.destroyRef);
+
   readonly emailError = computed(() => {
     const field = this.form.email();
     if (!field.touched()) return undefined;
@@ -139,8 +154,14 @@ export class RegisterComponent {
   readonly usernameError = computed(() => {
     const field = this.form.username();
     if (!field.touched()) return undefined;
-    return field.errors()[0]?.message;
+    return field.errors()[0]?.message ?? this.usernameValidator.error();
   });
+
+  readonly usernameAvailable = computed(() =>
+    this.model().username.length > 0
+    && this.usernameValidator.checked()
+    && !this.usernameValidator.error()
+  );
 
   readonly organizationNameError = computed(() => {
     const field = this.form.organizationName();
@@ -157,9 +178,18 @@ export class RegisterComponent {
     }));
   });
 
-  register(event: Event): void {
+  constructor() {
+    effect(() => {
+      this.usernameValidator.trigger(this.model().username);
+    });
+  }
+
+  async register(event: Event): Promise<void> {
     event.preventDefault();
     if (this.form().invalid()) return;
+
+    const usernameOk = await firstValueFrom(this.usernameValidator.recheck());
+    if (!usernameOk) return;
 
     this.error.set('');
     this.loading.set(true);

@@ -81,7 +81,7 @@ import { InvitationResponse } from '../../core/models/api.types';
       @if (created().length > 0) {
         <div class="mt-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
           <h3 class="text-sm font-medium text-green-800 dark:text-green-300">
-            {{ created().length }} invitacione{{ created().length === 1 ? '' : 's' }} creada{{ created().length === 1 ? '' : 's' }}
+            {{ created().length }} invitaci{{ created().length === 1 ? 'ón' : 'ones' }} creada{{ created().length === 1 ? '' : 's' }}
           </h3>
           <ul class="mt-3 space-y-2">
             @for (inv of created(); track inv.token) {

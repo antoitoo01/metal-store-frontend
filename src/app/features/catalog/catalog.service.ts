@@ -13,6 +13,11 @@ interface RawProfile {
   designation: string;
   weightKgM: number | null;
   areaCm2: number | null;
+  h: number | null;
+  b: number | null;
+  tw: number | null;
+  tf: number | null;
+  r: number | null;
   imagePath: string | null;
   familyId: string;
   familyStandard: string;
@@ -41,6 +46,11 @@ function toProfile(raw: RawProfile): CatalogProfile {
     designation: raw.designation,
     weightKgM: raw.weightKgM,
     areaCm2: raw.areaCm2,
+    h: raw.h,
+    b: raw.b,
+    tw: raw.tw,
+    tf: raw.tf,
+    r: raw.r,
     imagePath: raw.imagePath,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,

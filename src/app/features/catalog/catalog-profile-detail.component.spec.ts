@@ -37,9 +37,9 @@ describe('CatalogProfileDetailComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('53.8');
   });
 
-  it('renders image upload section', () => {
-    expect(fixture.nativeElement.textContent).toContain('Sin imagen');
+  it('renders blueprint placeholder when no image', () => {
     expect(fixture.nativeElement.textContent).toContain('Subir imagen');
+    expect(fixture.nativeElement.innerHTML).toContain('viewBox="0 0 260 260"');
   });
 
   it('renders back link', () => {

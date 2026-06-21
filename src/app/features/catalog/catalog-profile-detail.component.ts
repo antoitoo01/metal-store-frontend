@@ -7,10 +7,12 @@ import { CatalogProfile } from '../../core/models/api.types';
 import { BackLinkComponent } from '../../shared/components/back-link/back-link.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { ProfileBlueprintComponent } from './profile-blueprint/profile-blueprint.component';
 
 @Component({
   selector: 'app-catalog-profile-detail',
-  imports: [BackLinkComponent, DataStateComponent, ImageUploadComponent],
+  imports: [BackLinkComponent, DataStateComponent, ImageUploadComponent, ButtonComponent, ProfileBlueprintComponent],
   template: `
     <div class="p-6">
       <app-back-link path="/catalog/profiles" label="Volver a perfiles" />
@@ -28,18 +30,33 @@ import { ImageUploadComponent } from '../../shared/components/image-upload/image
               <div><dt class="font-medium text-gray-700 dark:text-gray-300">Código de familia</dt><dd class="text-gray-900 dark:text-white">{{ p.family.code }}</dd></div>
               <div><dt class="font-medium text-gray-700 dark:text-gray-300">Peso</dt><dd class="text-gray-900 dark:text-white">{{ p.weightKgM ?? '—' }} kg/m</dd></div>
               <div><dt class="font-medium text-gray-700 dark:text-gray-300">Área</dt><dd class="text-gray-900 dark:text-white">{{ p.areaCm2 ?? '—' }} cm²</dd></div>
+              <div><dt class="font-medium text-gray-700 dark:text-gray-300">Altura (h)</dt><dd class="text-gray-900 dark:text-white">{{ p.h ?? '—' }} mm</dd></div>
+              <div><dt class="font-medium text-gray-700 dark:text-gray-300">Anchura (b)</dt><dd class="text-gray-900 dark:text-white">{{ p.b ?? '—' }} mm</dd></div>
+              @if (p.r != null) {
+                <div><dt class="font-medium text-gray-700 dark:text-gray-300">Radio (r)</dt><dd class="text-gray-900 dark:text-white">{{ p.r }} mm</dd></div>
+              }
+              <div><dt class="font-medium text-gray-700 dark:text-gray-300">Espesor ala (t<sub>f</sub>)</dt><dd class="text-gray-900 dark:text-white">{{ p.tf ?? '—' }} mm</dd></div>
+              <div><dt class="font-medium text-gray-700 dark:text-gray-300">Espesor alma (t<sub>w</sub>)</dt><dd class="text-gray-900 dark:text-white">{{ p.tw ?? '—' }} mm</dd></div>
             </dl>
           </div>
 
           <div>
             <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Imagen</h2>
             <div class="mt-2">
-              <app-image-upload
-                [imageUrl]="imageUrl()"
-                [disabled]="uploadMutation.isPending() || deleteMutation.isPending()"
-                (uploaded)="uploadImage($event)"
-                (remove)="deleteImage()"
-              />
+              @if (imageUrl()) {
+                <app-image-upload
+                  [imageUrl]="imageUrl()"
+                  [disabled]="uploadMutation.isPending() || deleteMutation.isPending()"
+                  (uploaded)="uploadImage($event)"
+                  (remove)="deleteImage()"
+                />
+              } @else {
+                <app-profile-blueprint [shapeType]="query.data()!.family.shapeType" [familyCode]="query.data()!.family.code" class="mb-4 aspect-square max-h-60" />
+                <app-button variant="secondary" size="sm" [block]="true" [disabled]="uploadMutation.isPending()" (click)="fileInput.click()">
+                  {{ uploadMutation.isPending() ? 'Subiendo…' : 'Subir imagen' }}
+                </app-button>
+                <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+              }
             </div>
           </div>
         </div>
@@ -80,5 +97,10 @@ export class CatalogProfileDetailComponent {
 
   deleteImage() {
     this.deleteMutation.mutate();
+  }
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) this.uploadImage(file);
   }
 }

@@ -120,10 +120,14 @@ export interface CatalogProfile {
   designation: string;
   weightKgM: number | null;
   areaCm2: number | null;
+  h: number | null;
+  b: number | null;
+  tw: number | null;
+  tf: number | null;
+  r: number | null;
   imagePath: string | null;
   createdAt: string;
   updatedAt: string;
-  [key: string]: unknown;
 }
 
 export interface CatalogItem {

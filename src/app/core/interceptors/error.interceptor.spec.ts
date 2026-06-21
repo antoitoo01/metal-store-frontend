@@ -10,7 +10,7 @@ import { Observable, of, throwError } from 'rxjs';
 
 describe('errorInterceptor', () => {
   let httpMock: HttpTestingController;
-  let auth: { accessToken: string | null; clearAuth: ReturnType<typeof vi.fn>; refreshSession: ReturnType<typeof vi.fn> };
+  let auth: { accessToken: string | null; clearAuth: ReturnType<typeof vi.fn>; refreshSession: ReturnType<typeof vi.fn>; sessionExpired: { set: ReturnType<typeof vi.fn> } };
   let notifications: { error: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn> };
 
@@ -19,6 +19,7 @@ describe('errorInterceptor', () => {
       accessToken: token,
       clearAuth: vi.fn(),
       refreshSession: vi.fn(),
+      sessionExpired: { set: vi.fn() },
     };
     notifications = { error: vi.fn() };
     router = { navigate: vi.fn() };
@@ -50,7 +51,8 @@ describe('errorInterceptor', () => {
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     expect(auth.clearAuth).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(auth.sessionExpired.set).toHaveBeenCalledWith(true);
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('no redirige si SKIP_AUTH_REDIRECT es true', () => {
@@ -142,7 +144,8 @@ describe('errorInterceptor', () => {
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     expect(auth.clearAuth).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(auth.sessionExpired.set).toHaveBeenCalledWith(true);
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('hace una sola llamada de refresh para multiples 401 concurrentes', () => {

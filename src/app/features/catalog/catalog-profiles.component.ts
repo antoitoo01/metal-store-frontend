@@ -19,7 +19,7 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
         <app-search-input placeholder="Buscar perfil…" (searchChange)="search($event)" />
         <select (change)="standardFilter.set($any($event.target).value)" class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-slate-800 dark:text-white">
           <option value="">Todas las normas</option>
-          <option value="EUR">EUR</option>
+          <option value="EURO">EURO</option>
           <option value="AISC">AISC</option>
         </select>
       </div>
@@ -29,10 +29,11 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
           @for (p of query.data()?.content; track p.id) {
             <tr>
               <td class="font-medium text-gray-900 dark:text-white">{{ p.designation }}</td>
-              <td class="text-gray-600 dark:text-gray-400">{{ p.family.name }}</td>
               <td class="text-gray-600 dark:text-gray-400">{{ p.family.standard }}</td>
-              <td class="text-gray-600 dark:text-gray-400">{{ p.weightKgM ?? '—' }}</td>
-              <td class="text-gray-600 dark:text-gray-400">{{ p.areaCm2 ?? '—' }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ p.family.code }} - {{ p.family.name }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ p.b ?? '—' }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ p.h ?? '—' }}</td>
+              <td class="text-gray-600 dark:text-gray-400">{{ p.tf ?? '—' }}</td>
               <td><a [routerLink]="['/catalog/profiles', p.id]" class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400">Ver</a></td>
             </tr>
           }
@@ -48,10 +49,11 @@ import { SearchInputComponent } from '../../shared/components/search-input/searc
 export class CatalogProfilesComponent {
   readonly columnDefs: ColumnDef[] = [
     { key: 'designation', label: 'Designación', sortable: true },
-    { key: 'family', label: 'Familia', sortable: true },
     { key: 'standard', label: 'Norma', sortable: true },
-    { key: 'weightKgM', label: 'Peso (kg/m)', sortable: true },
-    { key: 'areaCm2', label: 'Área (cm²)', sortable: true },
+    { key: 'family', label: 'Familia', sortable: true },
+    { key: 'b', label: 'Anchura (mm)', sortable: true },
+    { key: 'h', label: 'Altura (mm)', sortable: true },
+    { key: 'tf', label: 'Espesor (mm)', sortable: true },
     { key: 'actions', label: '' },
   ];
 

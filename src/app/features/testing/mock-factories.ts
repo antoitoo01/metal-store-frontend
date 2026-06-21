@@ -25,7 +25,7 @@ export function mockCatalogFamily(overrides?: Partial<CatalogFamily>): CatalogFa
 }
 
 export function mockCatalogProfile(overrides?: Partial<CatalogProfile>): CatalogProfile {
-  return { id: crypto.randomUUID(), family: mockCatalogFamily(), designation: 'IPE 200', weightKgM: 18.4, areaCm2: 23.4, imagePath: null, createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00', ...overrides };
+  return { id: crypto.randomUUID(), family: mockCatalogFamily(), designation: 'IPE 200', weightKgM: 18.4, areaCm2: 23.4, h: 200, b: 100, tw: 5.6, tf: 8.5, r: 12, imagePath: null, createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00', ...overrides };
 }
 
 export function mockCatalogItem(overrides?: Partial<CatalogItem>): CatalogItem {

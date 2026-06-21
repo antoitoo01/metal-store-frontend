@@ -39,7 +39,7 @@ import { PageData, optimisticRemoveFromPage, rollbackPage } from '../../core/ser
               <td class="font-medium text-gray-900 dark:text-white">
                 <a [routerLink]="['/users', u.id]" class="hover:text-blue-600 dark:hover:text-blue-400">{{ u.username }}</a>
                 @if (u.id === currentUserId()) {
-                  <app-badge variant="info" size="sm">vos</app-badge>
+                  <app-badge variant="info" size="sm">Tú</app-badge>
                 }
               </td>
               <td class="text-gray-600 dark:text-gray-400">{{ u.email }}</td>
@@ -128,7 +128,7 @@ export class UserListComponent {
     const target = this.deleteTarget();
     if (!target) return;
     if (target.id === this.currentUserId()) {
-      this.notification.error('No podés eliminarte a vos mismo');
+      this.notification.error('No puedes eliminarte a ti mismo');
       this.showDeleteDialog.set(false);
       this.deleteTarget.set(null);
       return;

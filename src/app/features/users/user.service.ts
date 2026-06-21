@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { UserResponse, Page } from '../../core/models/api.types';
+import type { Observable } from 'rxjs';
 
 export interface UserListParams {
   q?: string;
@@ -14,6 +15,11 @@ export interface UserListParams {
 export class UserService {
   private readonly http = inject(HttpClient);
   private readonly api = `${environment.apiUrl}/api/users`;
+
+  checkAvailability(field: 'username' | 'email', value: string) {
+    const params = new HttpParams().set('field', field).set('value', value);
+    return this.http.get<{ available: boolean }>(`${this.api}/check`, { params });
+  }
 
   list(params?: UserListParams) {
     let httpParams = new HttpParams();
@@ -29,7 +35,10 @@ export class UserService {
   }
 
   update(body: { username?: string; email?: string }) {
-    return this.http.put<UserResponse>(`${this.api}/`, body);
+    const filtered: Record<string, string> = {};
+    if (body.username) filtered['username'] = body.username;
+    if (body.email) filtered['email'] = body.email;
+    return this.http.put<UserResponse>(this.api, filtered);
   }
 
   delete(id: string) {

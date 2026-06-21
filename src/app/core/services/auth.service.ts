@@ -28,6 +28,7 @@ export class AuthService {
 
   readonly user = signal<UserResponse | null>(null);
   readonly isAuthenticated = signal(false);
+  readonly sessionExpired = signal(false);
   readonly organizations = signal<UserOrganization[]>([]);
 
   #tenantId: string | null = null;
@@ -67,7 +68,7 @@ export class AuthService {
   }
 
   login(body: LoginRequest, rememberMe = false): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, body, {
+    return     this.http.post<LoginResponse>(`${this.apiUrl}/login`, body, {
       context: new HttpContext().set(SKIP_AUTH, true),
     }).pipe(
       tap((res) => this.#handleAuthResponse(res, rememberMe)),
@@ -94,10 +95,15 @@ export class AuthService {
     this.#organizationId = null;
     this.#accessToken = null;
     this.isAuthenticated.set(false);
+    this.sessionExpired.set(false);
     this.user.set(null);
     this.organizations.set([]);
     localStorage.removeItem(STORAGE_KEY);
     sessionStorage.removeItem(STORAGE_KEY);
+  }
+
+  clearSessionExpired(): void {
+    this.sessionExpired.set(false);
   }
 
   switchOrganization(orgId: string): void {
@@ -209,8 +215,8 @@ export class AuthService {
 
   #handleAuthResponse(res: LoginResponse, rememberMe: boolean): void {
     const user: UserResponse = {
-      id: res.tenantId,
-      tenantId: res.tenantId,
+      id: res.organizationId,
+      tenantId: res.organizationId,
       username: res.username ?? res.email.split('@')[0],
       email: res.email,
       role: res.role,
@@ -225,7 +231,7 @@ export class AuthService {
       email: res.email,
       username: res.username ?? res.email.split('@')[0],
       role: res.role,
-      tenantId: res.tenantId,
+      tenantId: res.organizationId,
       organizationId: res.organizationId,
       organizationName: res.organizationName,
       organizations: this.organizations(),
