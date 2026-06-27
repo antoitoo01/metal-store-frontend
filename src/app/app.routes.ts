@@ -46,8 +46,40 @@ export const routes: Routes = [
         children: [
           { path: '', loadComponent: () => import('./features/inventory/inventory-list.component').then((c) => c.InventoryListComponent) },
           { path: 'new', loadComponent: () => import('./features/inventory/inventory-form.component').then((c) => c.InventoryFormComponent) },
-          { path: ':id', loadComponent: () => import('./features/inventory/inventory-form.component').then((c) => c.InventoryFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/inventory/inventory-detail.component').then((c) => c.InventoryDetailComponent) },
           { path: ':id/edit', loadComponent: () => import('./features/inventory/inventory-form.component').then((c) => c.InventoryFormComponent) },
+        ],
+      },
+      {
+        path: 'suppliers',
+        children: [
+          { path: '', loadComponent: () => import('./features/suppliers/supplier-list.component').then((c) => c.SupplierListComponent) },
+          { path: ':id', loadComponent: () => import('./features/suppliers/supplier-detail.component').then((c) => c.SupplierDetailComponent) },
+        ],
+      },
+      {
+        path: 'purchase-orders',
+        children: [
+          { path: '', loadComponent: () => import('./features/purchase-orders/purchase-order-list.component').then((c) => c.PurchaseOrderListComponent) },
+          { path: 'new', loadComponent: () => import('./features/purchase-orders/purchase-order-form.component').then((c) => c.PurchaseOrderFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/purchase-orders/purchase-order-detail.component').then((c) => c.PurchaseOrderDetailComponent) },
+          { path: ':id/edit', loadComponent: () => import('./features/purchase-orders/purchase-order-form.component').then((c) => c.PurchaseOrderFormComponent) },
+        ],
+      },
+      {
+        path: 'inbound',
+        children: [
+          { path: '', loadComponent: () => import('./features/inbound/inbound-list.component').then((c) => c.InboundListComponent) },
+          { path: 'new', loadComponent: () => import('./features/inbound/inbound-form.component').then((c) => c.InboundFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/inbound/inbound-detail.component').then((c) => c.InboundDetailComponent) },
+        ],
+      },
+      {
+        path: 'outbound',
+        children: [
+          { path: '', loadComponent: () => import('./features/outbound/outbound-list.component').then((c) => c.OutboundListComponent) },
+          { path: 'new', loadComponent: () => import('./features/outbound/outbound-form.component').then((c) => c.OutboundFormComponent) },
+          { path: ':id', loadComponent: () => import('./features/outbound/outbound-detail.component').then((c) => c.OutboundDetailComponent) },
         ],
       },
       {

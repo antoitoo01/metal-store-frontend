@@ -17,9 +17,29 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     icon: 'book-open',
   },
   {
+    label: 'Proveedores',
+    route: '/suppliers',
+    icon: 'anvil',
+  },
+  {
     label: 'Inventario',
     route: '/inventory',
     icon: 'package',
+  },
+  {
+    label: 'Órdenes de compra',
+    route: '/purchase-orders',
+    icon: 'menu',
+  },
+  {
+    label: 'Albaranes entrada',
+    route: '/inbound',
+    icon: 'chevron-down',
+  },
+  {
+    label: 'Albaranes salida',
+    route: '/outbound',
+    icon: 'chevron-up',
   },
   {
     label: 'Presupuestos',

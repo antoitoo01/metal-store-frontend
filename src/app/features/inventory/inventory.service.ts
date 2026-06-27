@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { InventoryItemResponse, CreateInventoryItemRequest, Page } from '../../core/models/api.types';
+import { InventoryItemResponse, CreateInventoryItemRequest, Page, InventoryMovementResponse, AddStockRequest, RemoveStockRequest } from '../../core/models/api.types';
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
@@ -29,5 +29,18 @@ export class InventoryService {
 
   remove(id: string) {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getMovements(id: string, page = 0, size = 20) {
+    let params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<Page<InventoryMovementResponse>>(`${this.apiUrl}/${id}/movements`, { params });
+  }
+
+  addStock(id: string, body: AddStockRequest) {
+    return this.http.post<InventoryMovementResponse>(`${this.apiUrl}/${id}/add-stock`, body);
+  }
+
+  removeStock(id: string, body: RemoveStockRequest) {
+    return this.http.post<InventoryMovementResponse>(`${this.apiUrl}/${id}/remove-stock`, body);
   }
 }

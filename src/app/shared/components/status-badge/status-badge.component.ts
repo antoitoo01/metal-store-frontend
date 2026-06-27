@@ -6,11 +6,18 @@ export function statusToBadgeVariant(status: string): BadgeVariant {
     case 'ACCEPTED':
     case 'PAID':
     case 'ACTIVE':
+    case 'RECEIVED':
+    case 'CONFIRMED':
       return 'success';
     case 'CANCELLED':
     case 'REJECTED':
       return 'danger';
     case 'ISSUED':
+      return 'info';
+    case 'INBOUND':
+      return 'success';
+    case 'OUTBOUND':
+    case 'ADJUSTMENT':
       return 'info';
     case 'DRAFT':
     case 'INACTIVE':

@@ -304,3 +304,223 @@ export interface InvitationResponse {
 export interface CreateInvitationRequest {
   emails: string[];
 }
+
+// ── Suppliers ──
+
+export type SupplierStatus = 'ACTIVE' | 'INACTIVE';
+
+export interface CreateSupplierRequest {
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  vatNumber?: string;
+  notes?: string;
+}
+
+export interface SupplierResponse {
+  id: string;
+  organizationId: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  vatNumber: string | null;
+  notes: string | null;
+  status: SupplierStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Purchase Orders ──
+
+export type PurchaseOrderStatus = 'DRAFT' | 'ISSUED' | 'RECEIVED' | 'CANCELLED';
+
+export interface CreatePurchaseOrderRequest {
+  supplierId?: string;
+  supplierName?: string;
+  supplierVat?: string;
+  supplierAddress?: string;
+  expectedDate?: string;
+  notes?: string;
+}
+
+export interface PurchaseOrderResponse {
+  id: string;
+  organizationId: string;
+  poNumber: string;
+  supplierId: string | null;
+  supplierName: string | null;
+  supplierVat: string | null;
+  supplierAddress: string | null;
+  issueDate: string;
+  expectedDate: string | null;
+  status: PurchaseOrderStatus;
+  subtotal: number;
+  vatTotal: number;
+  total: number;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PurchaseOrderLineResponse {
+  id: string;
+  poId: string;
+  lineNumber: number;
+  profileId: string | null;
+  itemId: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  totalPrice: number;
+}
+
+export interface CreatePurchaseOrderLineRequest {
+  lineNumber: number;
+  profileId?: string;
+  itemId?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+}
+
+// ── Inventory Movements ──
+
+export type MovementType = 'INBOUND' | 'OUTBOUND' | 'ADJUSTMENT';
+export type ReferenceType = 'PURCHASE_ORDER' | 'DELIVERY_NOTE' | 'MANUAL_ADJUSTMENT' | 'SALE';
+
+export interface InventoryMovementResponse {
+  id: string;
+  inventoryItemId: string;
+  movementType: MovementType;
+  quantity: number;
+  referenceType: ReferenceType | null;
+  referenceId: string | null;
+  previousQuantity: number;
+  newQuantity: number;
+  notes: string | null;
+  performedAt: string;
+}
+
+export interface AddStockRequest {
+  quantity: number;
+  notes?: string;
+}
+
+export interface RemoveStockRequest {
+  quantity: number;
+  notes?: string;
+}
+
+// ── Inbound Delivery Notes ──
+
+export type InboundDNStatus = 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
+
+export interface CreateInboundDNRequest {
+  supplierId?: string;
+  supplierName?: string;
+  supplierVat?: string;
+  supplierAddress?: string;
+  poId?: string;
+  poNumber?: string;
+  issueDate?: string;
+  notes?: string;
+}
+
+export interface InboundDNResponse {
+  id: string;
+  organizationId: string;
+  number: string;
+  supplierId: string | null;
+  supplierName: string | null;
+  supplierVat: string | null;
+  supplierAddress: string | null;
+  poId: string | null;
+  poNumber: string | null;
+  issueDate: string;
+  status: InboundDNStatus;
+  totalAmount: number;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InboundDNLineResponse {
+  id: string;
+  deliveryNoteId: string;
+  lineNumber: number;
+  profileId: string | null;
+  itemId: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  notes: string | null;
+}
+
+export interface CreateInboundDNLineRequest {
+  lineNumber: number;
+  profileId?: string;
+  itemId?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  notes?: string;
+}
+
+// ── Outbound Delivery Notes ──
+
+export type OutboundDNStatus = 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
+
+export interface CreateOutboundDNRequest {
+  customerId?: string;
+  customerName?: string;
+  customerVat?: string;
+  customerAddress?: string;
+  issueDate?: string;
+  notes?: string;
+}
+
+export interface OutboundDNResponse {
+  id: string;
+  organizationId: string;
+  number: string;
+  customerId: string | null;
+  customerName: string | null;
+  customerVat: string | null;
+  customerAddress: string | null;
+  issueDate: string;
+  status: OutboundDNStatus;
+  totalAmount: number;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutboundDNLineResponse {
+  id: string;
+  deliveryNoteId: string;
+  lineNumber: number;
+  profileId: string | null;
+  itemId: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  notes: string | null;
+}
+
+export interface CreateOutboundDNLineRequest {
+  lineNumber: number;
+  profileId?: string;
+  itemId?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  notes?: string;
+}
